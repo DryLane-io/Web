@@ -129,6 +129,22 @@
             word-spacing: 8px;
         }
 
+        /* Facts: the one live project — white, bigger, and clickable. The text-overlay
+           disables pointer events, so re-enable them on the link itself. */
+        .stack a.facts-link {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: bold;
+            text-decoration: none;
+            pointer-events: auto;
+            text-shadow: 0 0 16px rgba(106, 168, 254, 0.6);
+            transition: text-shadow 0.2s ease;
+        }
+
+        .stack a.facts-link:hover {
+            text-shadow: 0 0 24px rgba(150, 200, 255, 0.95);
+        }
+
         @media (max-width: 768px) {
             .title {
                 font-size: 1.5rem;
@@ -161,7 +177,7 @@
     <div class="text-overlay">
         <div class="title">DRYLANE.IO</div>
         <div class="tagline">The Dry Stack is coming online.</div>
-        <div class="stack">Facts / Nio / Zao / Unda</div>
+        <div class="stack"><a class="facts-link" href="facts.html">Facts</a> / Nio / Zao / Unda</div>
     </div>
 
     <script type="importmap">
