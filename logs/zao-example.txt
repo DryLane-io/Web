@@ -1,0 +1,14 @@
+Dry.Zao Throughput Benchmark
+Iterations: 50.000.000
+
+Message              Tier         Bytes      Write MB/s      Read MB/s    Write Mop/s     Read Mop/s
+----------------------------------------------------------------------------------------------------
+PlayerMoved          0-Memcpy     16         66794 MB/s     65747 MB/s   4174,6 Mop/s   4109,2 Mop/s
+DamageDealt          0-Memcpy     13         27168 MB/s     54320 MB/s   2089,9 Mop/s   4178,4 Mop/s
+Heartbeat            1-Block      12         48062 MB/s     50189 MB/s   4005,2 Mop/s   4182,4 Mop/s
+SpawnEntity          2-Hybrid     38          3001 MB/s      2558 MB/s     79,0 Mop/s     67,3 Mop/s
+ChatMessage          2-Hybrid     13          1384 MB/s      1104 MB/s    106,4 Mop/s     85,0 Mop/s
+WorldSnapshot        3-Nested     40          6909 MB/s      4272 MB/s    172,7 Mop/s    106,8 Mop/s
+Inventory            3-Complex    72          6398 MB/s      1247 MB/s     88,9 Mop/s     17,3 Mop/s
+----------------------------------------------------------------------------------------------------
+Done.
