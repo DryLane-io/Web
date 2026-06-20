@@ -117,25 +117,56 @@
             letter-spacing: 4px;
         }
 
-        /* Single doorway. The text-overlay disables pointer events, so
-           re-enable them on the button itself. */
-        .enter {
-            display: inline-block;
-            pointer-events: auto;
-            color: #ffffff;
-            text-decoration: none;
-            border: 1px solid rgba(106, 168, 254, 0.5);
-            border-radius: 8px;
-            padding: 12px 28px;
-            font-size: 0.85rem;
+        .tagline {
+            font-size: 1.0rem;
+            color: rgba(200, 210, 230, 0.7);
+            text-shadow: 0 0 10px rgba(106, 168, 254, 0.2);
+            margin-bottom: 20px;
             letter-spacing: 3px;
-            text-shadow: 0 0 16px rgba(106, 168, 254, 0.6);
-            transition: background 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .enter:hover {
-            background: rgba(106, 168, 254, 0.12);
-            box-shadow: 0 0 28px rgba(106, 168, 254, 0.45);
+        .stack {
+            font-size: 0.7rem;
+            color: rgba(160, 170, 200, 0.5);
+            letter-spacing: 2px;
+            word-spacing: 8px;
+        }
+
+        /* Live projects — white, bigger, and clickable. The text-overlay
+        disables pointer events, so re-enable them on the links themselves. */
+        .stack a.facts-link {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: bold;
+            text-decoration: none;
+            pointer-events: auto;
+            text-shadow: 0 0 16px rgba(106, 168, 254, 0.6);
+            transition: text-shadow 0.2s ease;
+        }
+
+        .stack a.facts-link:hover {
+            text-shadow: 0 0 24px rgba(150, 200, 255, 0.95);
+        }
+
+        .demos {
+            margin-top: 14px;
+        }
+
+        .contact {
+            margin-top: 20px;
+        }
+
+        .contact-link {
+            color: rgba(200, 210, 230, 0.7);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            pointer-events: auto;
+            transition: color 0.2s ease;
+        }
+
+        .contact-link:hover {
+            color: rgba(230, 239, 255, 0.95);
         }
 
         @media (max-width: 768px) {
@@ -144,9 +175,14 @@
                 letter-spacing: 2px;
             }
 
-            .enter {
-                padding: 10px 22px;
+            .tagline {
+                font-size: 0.65rem;
                 letter-spacing: 2px;
+            }
+
+            .stack {
+                font-size: 0.55rem;
+                word-spacing: 4px;
             }
 
             .text-overlay {
@@ -164,7 +200,10 @@
 
     <div class="text-overlay">
         <div class="title">DRYLANE.IO</div>
-        <a class="enter" href="stack.html">&gt;&gt;&gt; ENTER &lt;&lt;&lt;</a>
+        <div class="tagline">--- The Dry Stack ---</div>
+        <div class="stack"><a class="facts-link" href="facts.html">Facts</a> | <a class="facts-link" href="nio.html">Nio</a> | <a class="facts-link" href="zao.html">Zao</a> | <a class="facts-link" href="https://live.drylane.io">Live Demo</a> | <a class="facts-link" href="https://f1.drylane.io">F1 Replay</a> | <a class="facts-link" href="https://api.drylane.io">Bench</a> | <a class="facts-link" href="https://log.drylane.io">Logs</a> | <a class="facts-link" href="https://chaos.drylane.io">Chaos</a> | <a class="facts-link" href="https://pi.drylane.io">PI</a> | <a class="facts-link" href="https://drylane.io/code.html">Code</a></div>
+        <div class="contact"><a class="contact-link" <a class="contact-link" href="https://x.com/drylaneio">X</a></div>
+        <div class="contact"><a class="contact-link" href="mailto:info@drylane.io">info@drylane.io</a></div>
     </div>
 
     <script type="importmap">
@@ -358,7 +397,6 @@
         animate();
 
         // The whole storm is a doorway — a click anywhere walks into the eye.
-        // The Enter button is the explicit affordance; this makes the vortex itself work too.
         document.body.style.cursor = 'pointer';
         window.addEventListener('click', () => { window.location.href = 'stack.html'; });
     </script>
