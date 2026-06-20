@@ -1,14 +1,33 @@
+--- LINUX --- Ryzen 9 9950X (Zen 5) ---
+
+Dry.Zao Throughput Benchmark
+Iterations: 50,000,000
+
+Message              Tier         Bytes      Write MB/s      Read MB/s    Write Mop/s     Read Mop/s
+----------------------------------------------------------------------------------------------------
+PlayerMoved          0-Memcpy     16         42664 MB/s     85215 MB/s   2666.5 Mop/s   5325.9 Mop/s
+DamageDealt          0-Memcpy     13         34608 MB/s     69671 MB/s   2662.2 Mop/s   5359.3 Mop/s
+Heartbeat            1-Block      12         64265 MB/s     64560 MB/s   5355.4 Mop/s   5380.0 Mop/s
+SpawnEntity          2-Hybrid     38          4430 MB/s      2754 MB/s    116.6 Mop/s     72.5 Mop/s
+ChatMessage          2-Hybrid     13          1977 MB/s      1111 MB/s    152.1 Mop/s     85.5 Mop/s
+WorldSnapshot        3-Nested     40        101356 MB/s     11135 MB/s   2533.9 Mop/s    278.4 Mop/s
+Inventory            3-Complex    72          5153 MB/s      2111 MB/s     71.6 Mop/s     29.3 Mop/s
+----------------------------------------------------------------------------------------------------
+Done.
+
+--- WINDOWS --- Ryzen 9 7950X3D (Zen 4) ---
+
 Dry.Zao Throughput Benchmark
 Iterations: 50.000.000
 
 Message              Tier         Bytes      Write MB/s      Read MB/s    Write Mop/s     Read Mop/s
 ----------------------------------------------------------------------------------------------------
-PlayerMoved          0-Memcpy     16         66794 MB/s     65747 MB/s   4174,6 Mop/s   4109,2 Mop/s
-DamageDealt          0-Memcpy     13         27168 MB/s     54320 MB/s   2089,9 Mop/s   4178,4 Mop/s
-Heartbeat            1-Block      12         48062 MB/s     50189 MB/s   4005,2 Mop/s   4182,4 Mop/s
-SpawnEntity          2-Hybrid     38          3001 MB/s      2558 MB/s     79,0 Mop/s     67,3 Mop/s
-ChatMessage          2-Hybrid     13          1384 MB/s      1104 MB/s    106,4 Mop/s     85,0 Mop/s
-WorldSnapshot        3-Nested     40          6909 MB/s      4272 MB/s    172,7 Mop/s    106,8 Mop/s
-Inventory            3-Complex    72          6398 MB/s      1247 MB/s     88,9 Mop/s     17,3 Mop/s
+PlayerMoved          0-Memcpy     16         22251 MB/s     66837 MB/s   1390,7 Mop/s   4177,3 Mop/s
+DamageDealt          0-Memcpy     13         27066 MB/s     54080 MB/s   2082,0 Mop/s   4160,0 Mop/s
+Heartbeat            1-Block      12         49990 MB/s     50077 MB/s   4165,9 Mop/s   4173,1 Mop/s
+SpawnEntity          2-Hybrid     38          3137 MB/s      1867 MB/s     82,6 Mop/s     49,1 Mop/s
+ChatMessage          2-Hybrid     13          1453 MB/s       785 MB/s    111,8 Mop/s     60,4 Mop/s
+WorldSnapshot        3-Nested     40         40810 MB/s      6449 MB/s   1020,3 Mop/s    161,2 Mop/s
+Inventory            3-Complex    72          3585 MB/s      1199 MB/s     49,8 Mop/s     16,6 Mop/s
 ----------------------------------------------------------------------------------------------------
 Done.

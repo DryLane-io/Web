@@ -1,7 +1,10 @@
+--- LINUX --- Ryzen 9 9950X (Zen 5) ---
+
 ========================================================================
  Facts - embedded time-series fact store   (The Dry Stack | drylane.io)
  verification & benchmarks
 ========================================================================
+[JBLOB] PASS (full=4395912 activeTail=201608 over sealed+active w/ blobs)
 correctness: 6/6 micro-tests PASS (typed columns, SIMD scan, range predicate, info getters, live scan)
 
 === Durability & integrity (crash, corruption, rebuild) ===
@@ -27,9 +30,9 @@ correctness: 6/6 micro-tests PASS (typed columns, SIMD scan, range predicate, in
 [TORNMETA] PASS (0 failures)
 
 === predicate pushdown (f64 column) ===
-[PRED] no-filter       emitted=10486  best=133.10 us
-[PRED] value > 90      emitted=936  best=129.30 us
-[PRED] value == 50     emitted=105  best=125.30 us
+[PRED] no-filter       emitted=10486  best=114.09 us
+[PRED] value > 90      emitted=936  best=118.89 us
+[PRED] value == 50     emitted=105  best=117.38 us
 
 === verification PASS ===
 
@@ -37,35 +40,35 @@ correctness: 6/6 micro-tests PASS (typed columns, SIMD scan, range predicate, in
  reference  (WARM / memory-resident, 1 core, synthetic, best-of-20)
  shard: f64 'value' column + 8B ref  |  30.00 B/point  |  4.19M points, 1000 tags
 ========================================================================
-  ingest (1 core) ....... 76.62 M points/s   (13.05 ns/point)
-  point query (latest) .. 600.00 ns
-  tag locate (indexed) .. 2.00 us  -> 4195 records among 4.19M  (sub-linear, not a scan)
-  range read (1 series) . 44.39 M points/s  (4195 points, full f64 column)
-  value filter (v>30000)  66.27 M points/s scanned  -> 355/4195 hits in 63.30 us  (refinement path)
-  SIMD f64 column scan .. 3.03 G points/s  (24.24 GB/s, every value, 354240 matches in 1384.20 us, scalar-verified OK)
-  value query (cross-tag) 5.90 G values/s end-to-end  (8640 records value>32700 in 710.30 us, scan+time+fill)
-  downsample 2000-pt .... 94.60 us/chart  (10570.82 charts/s)
+  ingest (1 core) ....... 92.67 M points/s   (10.79 ns/point)
+  point query (latest) .. 390.00 ns
+  tag locate (indexed) .. 1.43 us  -> 4195 records among 4.19M  (sub-linear, not a scan)
+  range read (1 series) . 66.95 M points/s  (4195 points, full f64 column)
+  value filter (v>30000)  104.64 M points/s scanned  -> 355/4195 hits in 40.09 us  (refinement path)
+  SIMD f64 column scan .. 10.72 G points/s  (85.74 GB/s, every value, 354240 matches in 391.34 us, scalar-verified OK)
+  value query (cross-tag) 9.15 G values/s end-to-end  (8640 records value>32700 in 458.44 us, scan+time+fill)
+  downsample 2000-pt .... 33.73 us/chart  (29648.08 charts/s)
   storage density ....... 30.00 B/point  -> 35.79 M points/GiB
   (multi-core ingest scaling below in SHARD_BENCH)
 ========================================================================
 
 === Concurrent ingest + query (latency under live ingest) ===
   pre-filled 4.19M points (1 segment)
-  idle query (samples=256) ......... p50=2.00 us  p99=6.80 us
+  idle query (samples=256) ......... p50=2.05 us  p99=3.21 us
   --- under concurrent ingest ---
-  ingest while querying ............. 52.67 M points/s  (8.39M in 159.26 ms, 2 rotations)
-  queries completed ................ 47606   p50=2.90 us  p99=5.30 us  max=8361.80 us
+  ingest while querying ............. 74.63 M points/s  (8.39M in 112.41 ms, 2 rotations)
+  queries completed ................ 32963   p50=3.06 us  p99=5.70 us  max=2140.69 us
 
 === Value-alert at scale (find all readings above critical, all sensors) ===
   dataset .......... 16.78M readings, 1000 sensors, f64 value column (128.00 MB scanned)
-  value > 32700 .... 34560 alerts found in 3842.90 us  (4365.77 M values/s, 34.93 GB/s, 4 sealed segments)
+  value > 32700 .... 34560 alerts found in 2601.55 us  (6448.92 M values/s, 51.59 GB/s, 4 sealed segments)
   -> all returned values verified > critical
   windowed ........ 17280 (exp 17280)  -> time-slice verified
-  time-slice ...... full=3791.70 us  windowed(~half span)=1754.20 us  speedup=2.16x
+  time-slice ...... full=2639.21 us  windowed(~half span)=1208.05 us  speedup=2.18x
 
 === SIMD histogram (distribution of a value column) ===
-  histogram (64 buckets) . 35.67 ms  (1881.15 M values/s, 15.05 GB/s, verified OK)
-  min/max/sum/count ...... 13.98 ms  (4800.07 M values/s, 38.40 GB/s, verified OK)  min=56.00 max=977.00 mean=511.50
+  histogram (64 buckets) . 28.66 ms  (2341.43 M values/s, 18.73 GB/s, verified OK)
+  min/max/sum/count ...... 9.22 ms  (7279.81 M values/s, 58.24 GB/s, verified OK)  min=56.00 max=977.00 mean=511.50
        0 |
       64 |#######
      128 |#############
@@ -84,47 +87,182 @@ correctness: 6/6 micro-tests PASS (typed columns, SIMD scan, range predicate, in
      960 |######
 
 === benchmarks (f64 column + 8 B ref, 1000 tags, full segment) ===
-[BENCH] ingest+seal : 47.93 ms  2503.55 MB/s  (30.00 B/rec, 4194304 rec)
-[BENCH] scan(1 tag) : 28.80 us  matches=4224  0.01 ns/rec
-[BENCH] gather(8 B)  : 67.80 us  hits=4224  16.05 ns/hit
-[BENCH] parallel(1 seg): 13.60 us  matches=4224
-[BENCH] tag_query_samples(256): 15.30 us
-[BENCH] tag_query_samples(2000): 92.40 us
-[BENCH] tag_read_range: 4224 rec in 288.10 us  (14.66 Mrec/s)
+[BENCH] ingest+seal : 40.69 ms  2948.95 MB/s  (30.00 B/rec, 4194304 rec)
+[BENCH] scan(1 tag) : 12.03 us  matches=4224  0.00 ns/rec
+[BENCH] gather(8 B)  : 31.93 us  hits=4224  7.56 ns/hit
+[BENCH] parallel(1 seg): 2989.11 us  matches=4224
+[BENCH] tag_query_samples(256): 6.69 us
+[BENCH] tag_query_samples(2000): 32.99 us
+[BENCH] tag_read_range: 4224 rec in 206.42 us  (20.46 Mrec/s)
 
 === Multi-shard ingest scaling ===
-[SHARD_BENCH] n_shards=1  records=4194304.00  time=47.07 ms  throughput=2549.36 MB/s  per-shard=2549.36 MB/s
-[SHARD_BENCH] n_shards=2  records=8388608.00  time=55.09 ms  throughput=4356.60 MB/s  per-shard=2178.30 MB/s
-[SHARD_BENCH] n_shards=4  records=16777216.00  time=85.75 ms  throughput=5597.63 MB/s  per-shard=1399.41 MB/s
-[SHARD_BENCH] n_shards=8  records=33554432.00  time=154.44 ms  throughput=6215.99 MB/s  per-shard=777.00 MB/s
+[SHARD_BENCH] n_shards=1  records=4194304.00  time=34.59 ms  throughput=3468.96 MB/s  per-shard=3468.96 MB/s
+[SHARD_BENCH] n_shards=2  records=8388608.00  time=32.58 ms  throughput=7366.14 MB/s  per-shard=3683.07 MB/s
+[SHARD_BENCH] n_shards=4  records=16777216.00  time=47.60 ms  throughput=10084.34 MB/s  per-shard=2521.08 MB/s
+[SHARD_BENCH] n_shards=8  records=33554432.00  time=88.88 ms  throughput=10800.94 MB/s  per-shard=1350.12 MB/s
 
 === factslibrpc loopback RPC (db-backed, 127.0.0.1, per-call connect) ===
-[RPC] DbGetInfo    : best=204.60 us  avg=220.83 us  (200/200 ok)
-[RPC] ShardGetInfo : best=200.90 us  avg=223.53 us  (200/200 ok)
-[RPC] TagGetInfo   : best=210.70 us  avg=225.50 us  (200/200 ok)
-[RPC] ReadRange   : best=256.00 us  count=1000  (3.91 Mrec/s, tag_ok=1, 100/100 ok)
-[RPC] Append      : best=210.00 us  (200/200 appended)
-[RPC] AppendBatch : best=228.70 us/call  (512 rec/call, 2.24 Mrec/s, 446.68 ns/rec, 200/200 ok)
+niolib: fixed-buffer registration failed (err=-12 Cannot allocate memory) — UDP zero-copy disabled; TCP unaffected. See LINUX.md.
+[RPC] DbGetInfo    : best=32.46 us  avg=37.92 us  (200/200 ok)
+[RPC] ShardGetInfo : best=20.77 us  avg=29.81 us  (200/200 ok)
+[RPC] TagGetInfo   : best=20.52 us  avg=25.16 us  (200/200 ok)
+[RPC] ReadRange   : best=38.93 us  count=1000  (25.69 Mrec/s, tag_ok=1, 100/100 ok)
+[RPC] Append      : best=20.15 us  (200/200 appended)
+[RPC] AppendBatch : best=26.61 us/call  (512 rec/call, 19.24 Mrec/s, 51.97 ns/rec, 200/200 ok)
   -- persistent connection (connect+Hello amortized) --
-[RPC] DbGetInfo    (sess): best=10.90 us  p50=11.60 us  p99=15.60 us  (5000/5000 ok)
-[RPC] ShardGetInfo (sess): best=10.80 us  p50=11.60 us  p99=16.50 us  (5000/5000 ok)
-[RPC] TagGetInfo   (sess): best=30.80 us  p50=31.60 us  p99=45.30 us  (5000/5000 ok)
-[RPC] NotFound     (sess): best=10.80 us  p50=11.50 us  p99=15.80 us  (5000/5000 NotFound)
-[RPC] ReadRange    (sess): best=4507.70 us  count=103600  (22.98 Mrec/s, 1000/1000 ok)
-[RPC] Scan         (sess): best=504.80 us  matches=333  (1000/1000 ok)
-[RPC] Append       (sess): best=10.90 us  avg=12.04 us  (5000/5000 appended)
-[RPC] Append blob32(sess): best=11.00 us  avg=13.36 us  (5000/5000 appended, 32 B blob)
-[RPC] AppendBatch  (sess): best=20.50 us/call  (512 rec/call, 24.98 Mrec/s, 40.04 ns/rec, 5000/5000 ok)
+[RPC] DbGetInfo    (sess): best=4.62 us  p50=6.31 us  p99=15.04 us  (5000/5000 ok)
+[RPC] ShardGetInfo (sess): best=4.59 us  p50=5.41 us  p99=9.23 us  (5000/5000 ok)
+[RPC] TagGetInfo   (sess): best=11.80 us  p50=12.70 us  p99=22.53 us  (5000/5000 ok)
+[RPC] NotFound     (sess): best=4.72 us  p50=9.64 us  p99=14.20 us  (5000/5000 NotFound)
+[RPC] ReadRange    (sess): best=1743.37 us  count=103600  (59.43 Mrec/s, 1000/1000 ok)
+[RPC] Scan         (sess): best=46.89 us  matches=333  (1000/1000 ok)
+[RPC] Append       (sess): best=4.69 us  avg=6.11 us  (5000/5000 appended)
+[RPC] Append blob32(sess): best=4.67 us  avg=6.06 us  (5000/5000 appended, 32 B blob)
+[RPC] AppendBatch  (sess): best=9.54 us/call  (512 rec/call, 53.67 Mrec/s, 18.63 ns/rec, 5000/5000 ok)
 
 ========================================================================
  factslib - summary  (this machine, warm / memory-resident, best-of-N)
 ========================================================================
-  ingest (1 core) ....... 76.62 M points/s
+  ingest (1 core) ....... 92.67 M points/s
+  point query (latest) .. 390.00 ns
+  SIMD value scan ....... 85.74 GB/s  (every value, scalar-verified)
+  alert scan ............ 16.78M readings filtered in 2601.55 us  (51.59 GB/s)
+  under live ingest ..... 74.63 M points/s, query p99 5.70 us
+  histogram / agg ....... 18.73 / 58.24 GB/s
+  RPC (persistent) ...... TagGetInfo p50 12.70 us, AppendBatch 18.63 ns/rec
+  storage ............... 30.00 B/point  (35.79 M points/GiB)
+========================================================================
+
+--- WINDOWS --- Ryzen 9 7950X3D (Zen 4) ---
+
+========================================================================
+ Facts - embedded time-series fact store   (The Dry Stack | drylane.io)
+ verification & benchmarks
+========================================================================
+[JBLOB] PASS (full=4395912 activeTail=201608 over sealed+active w/ blobs)
+correctness: 6/6 micro-tests PASS (typed columns, SIMD scan, range predicate, info getters, live scan)
+
+=== Durability & integrity (crash, corruption, rebuild) ===
+
+[REBUILD] meta.idx rebuild-from-columns (ground truth)
+[REBUILD] PASS (0 failures, 42599 tag-7 records verified)
+
+[CRASH] flush() durability across an unclean process kill
+[CRASH] flushed: 50 tag-5 records survived the kill
+[CRASH] no-flush: 0 tag-5 records survived (expected 0 - unsealed tail lost without flush)
+[CRASH] PASS (0 failures)
+
+[TORN] verify-on-open truncates a corrupted sealed chunk
+[TORN] ShardInfo.torn_truncated=1 (chunks dropped)
+[TORN] truncated at torn chunk: 656 tag-0 records survived (chunk 0 only, ~655)
+[TORN] PASS (0 failures)
+
+[TORNMETA-A] active meta.idx CRC rebuild (no-ref)
+[TORNMETA-A] PASS (rebuilt=1, 1311 survivors verified, partial dropped)
+
+[TORNMETA-B] active meta.idx CRC rebuild (has_ref blobs)
+[TORNMETA-B] PASS (rebuilt=1, 1311 sealed blobs intact, +50 new no-overwrite)
+[TORNMETA] PASS (0 failures)
+
+=== predicate pushdown (f64 column) ===
+[PRED] no-filter       emitted=10486  best=155.60 us
+[PRED] value > 90      emitted=936  best=134.80 us
+[PRED] value == 50     emitted=105  best=129.50 us
+
+=== verification PASS ===
+
+========================================================================
+ reference  (WARM / memory-resident, 1 core, synthetic, best-of-20)
+ shard: f64 'value' column + 8B ref  |  30.00 B/point  |  4.19M points, 1000 tags
+========================================================================
+  ingest (1 core) ....... 88.88 M points/s   (11.25 ns/point)
   point query (latest) .. 600.00 ns
-  SIMD value scan ....... 24.24 GB/s  (every value, scalar-verified)
-  alert scan ............ 16.78M readings filtered in 3842.90 us  (34.93 GB/s)
-  under live ingest ..... 52.67 M points/s, query p99 5.30 us
-  histogram / agg ....... 15.05 / 38.40 GB/s
-  RPC (persistent) ...... TagGetInfo p50 31.60 us, AppendBatch 40.04 ns/rec
+  tag locate (indexed) .. 2.40 us  -> 4195 records among 4.19M  (sub-linear, not a scan)
+  range read (1 series) . 40.41 M points/s  (4195 points, full f64 column)
+  value filter (v>30000)  63.46 M points/s scanned  -> 355/4195 hits in 66.10 us  (refinement path)
+  SIMD f64 column scan .. 3.27 G points/s  (26.16 GB/s, every value, 354240 matches in 1282.80 us, scalar-verified OK)
+  value query (cross-tag) 5.90 G values/s end-to-end  (8640 records value>32700 in 710.60 us, scan+time+fill)
+  downsample 2000-pt .... 91.70 us/chart  (10905.13 charts/s)
+  storage density ....... 30.00 B/point  -> 35.79 M points/GiB
+  (multi-core ingest scaling below in SHARD_BENCH)
+========================================================================
+
+=== Concurrent ingest + query (latency under live ingest) ===
+  pre-filled 4.19M points (1 segment)
+  idle query (samples=256) ......... p50=1.90 us  p99=4.10 us
+  --- under concurrent ingest ---
+  ingest while querying ............. 57.24 M points/s  (8.39M in 146.56 ms, 2 rotations)
+  queries completed ................ 42486   p50=3.00 us  p99=4.60 us  max=9029.80 us
+
+=== Value-alert at scale (find all readings above critical, all sensors) ===
+  dataset .......... 16.78M readings, 1000 sensors, f64 value column (128.00 MB scanned)
+  value > 32700 .... 34560 alerts found in 4616.90 us  (3633.87 M values/s, 29.07 GB/s, 4 sealed segments)
+  -> all returned values verified > critical
+  windowed ........ 17280 (exp 17280)  -> time-slice verified
+  time-slice ...... full=4584.00 us  windowed(~half span)=2150.80 us  speedup=2.13x
+
+=== SIMD histogram (distribution of a value column) ===
+  histogram (64 buckets) . 35.56 ms  (1887.41 M values/s, 15.10 GB/s, verified OK)
+  min/max/sum/count ...... 15.37 ms  (4367.33 M values/s, 34.94 GB/s, verified OK)  min=56.00 max=977.00 mean=511.50
+       0 |
+      64 |#######
+     128 |#############
+     192 |################
+     256 |#######################
+     320 |##############################
+     384 |################################
+     448 |#####################################
+     512 |###########################################
+     576 |####################################
+     640 |##############################
+     704 |###########################
+     768 |####################
+     832 |#############
+     896 |###########
+     960 |######
+
+=== benchmarks (f64 column + 8 B ref, 1000 tags, full segment) ===
+[BENCH] ingest+seal : 54.56 ms  2199.26 MB/s  (30.00 B/rec, 4194304 rec)
+[BENCH] scan(1 tag) : 29.20 us  matches=4224  0.01 ns/rec
+[BENCH] gather(8 B)  : 58.00 us  hits=4224  13.73 ns/hit
+[BENCH] parallel(1 seg): 14.10 us  matches=4224
+[BENCH] tag_query_samples(256): 15.10 us
+[BENCH] tag_query_samples(2000): 93.50 us
+[BENCH] tag_read_range: 4224 rec in 321.20 us  (13.15 Mrec/s)
+
+=== Multi-shard ingest scaling ===
+[SHARD_BENCH] n_shards=1  records=4194304.00  time=47.17 ms  throughput=2543.86 MB/s  per-shard=2543.86 MB/s
+[SHARD_BENCH] n_shards=2  records=8388608.00  time=59.47 ms  throughput=4035.74 MB/s  per-shard=2017.87 MB/s
+[SHARD_BENCH] n_shards=4  records=16777216.00  time=81.36 ms  throughput=5899.85 MB/s  per-shard=1474.96 MB/s
+[SHARD_BENCH] n_shards=8  records=33554432.00  time=158.90 ms  throughput=6041.60 MB/s  per-shard=755.20 MB/s
+
+=== factslibrpc loopback RPC (db-backed, 127.0.0.1, per-call connect) ===
+[RPC] DbGetInfo    : best=206.90 us  avg=221.98 us  (200/200 ok)
+[RPC] ShardGetInfo : best=201.40 us  avg=225.20 us  (200/200 ok)
+[RPC] TagGetInfo   : best=209.80 us  avg=227.47 us  (200/200 ok)
+[RPC] ReadRange   : best=261.00 us  count=1000  (3.83 Mrec/s, tag_ok=1, 100/100 ok)
+[RPC] Append      : best=213.40 us  (200/200 appended)
+[RPC] AppendBatch : best=228.30 us/call  (512 rec/call, 2.24 Mrec/s, 445.90 ns/rec, 200/200 ok)
+  -- persistent connection (connect+Hello amortized) --
+[RPC] DbGetInfo    (sess): best=11.00 us  p50=11.70 us  p99=16.40 us  (5000/5000 ok)
+[RPC] ShardGetInfo (sess): best=11.00 us  p50=11.70 us  p99=16.30 us  (5000/5000 ok)
+[RPC] TagGetInfo   (sess): best=31.40 us  p50=32.20 us  p99=41.90 us  (5000/5000 ok)
+[RPC] NotFound     (sess): best=11.00 us  p50=11.70 us  p99=16.50 us  (5000/5000 NotFound)
+[RPC] ReadRange    (sess): best=4673.60 us  count=103600  (22.17 Mrec/s, 1000/1000 ok)
+[RPC] Scan         (sess): best=567.70 us  matches=333  (1000/1000 ok)
+[RPC] Append       (sess): best=11.10 us  avg=12.09 us  (5000/5000 appended)
+[RPC] Append blob32(sess): best=11.00 us  avg=12.32 us  (5000/5000 appended, 32 B blob)
+[RPC] AppendBatch  (sess): best=20.70 us/call  (512 rec/call, 24.73 Mrec/s, 40.43 ns/rec, 5000/5000 ok)
+
+========================================================================
+ factslib - summary  (this machine, warm / memory-resident, best-of-N)
+========================================================================
+  ingest (1 core) ....... 88.88 M points/s
+  point query (latest) .. 600.00 ns
+  SIMD value scan ....... 26.16 GB/s  (every value, scalar-verified)
+  alert scan ............ 16.78M readings filtered in 4616.90 us  (29.07 GB/s)
+  under live ingest ..... 57.24 M points/s, query p99 4.60 us
+  histogram / agg ....... 15.10 / 34.94 GB/s
+  RPC (persistent) ...... TagGetInfo p50 32.20 us, AppendBatch 40.43 ns/rec
   storage ............... 30.00 B/point  (35.79 M points/GiB)
 ========================================================================

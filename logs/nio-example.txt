@@ -1,3 +1,5 @@
+--- LINUX --- Ryzen 9 9950X (Zen 5) ---
+
 === NIO Test Program ===
 
 [Server] Client Conn(0:1) connected. Total: 1
@@ -71,6 +73,102 @@
   Total time:   64.01 ms
   Avg RTT:      6.40 µs
   Throughput:   312,428 msg/s
+  Ping-pong test passed.
+[Server] Client Conn(0:3) disconnected. Total: 9
+[Server] Client Conn(1:2) disconnected. Total: 8
+[Server] Client Conn(2:2) disconnected. Total: 7
+[Server] Client Conn(3:1) disconnected. Total: 6
+[Server] Client Conn(4:1) disconnected. Total: 5
+[Server] Client Conn(5:1) disconnected. Total: 4
+[Server] Client Conn(6:1) disconnected. Total: 3
+[Server] Client Conn(7:1) disconnected. Total: 2
+[Server] Client Conn(8:1) disconnected. Total: 1
+[Server] Client Conn(9:1) disconnected. Total: 0
+[Server] Client Conn(0:4) connected. Total: 1
+
+[Server] Events received:  10008261
+[Server] Requests received: 20208
+[Server] Stream frames:     500
+[Server] Dropped messages:  0
+[Server] Client Conn(0:4) disconnected. Total: 0
+
+=== All tests passed ===
+
+--- WINDOWS --- Ryzen 9 7950X3D (Zen 4) ---
+
+=== NIO Test Program ===
+
+[Server] Client Conn(0:1) connected. Total: 1
+[Client1] Connected.
+
+--- Test 1: Throughput (batched events) ---
+  Messages:       9.999.631
+  Batch size:     431 (1 slot, 0 mid-flush)
+  Batches:        23.201
+  Time:           333,04 ms
+  Throughput:     30.025.135 msg/s
+  Bandwidth:      17409,6 Mbit/s
+  Flushes/s:      69.664
+
+--- Test 2: Latency (request/response) ---
+  Round-trips: 10.000
+  Total:       144,24 ms
+  Avg RTT:     14,42 µs
+
+--- Test 3: Server -> Client streaming ---
+  Stream frames: 1000
+  Total time:    15,34 ms
+  Total data:    512.000 bytes
+  Bandwidth:     254 MB/s
+
+--- Test 4: Client -> Server upload ---
+  Frames:     500
+  Total data: 128.000 bytes
+  Time:       0,15 ms
+  Bandwidth:     823 MB/s
+
+--- Test 5: Sequential queries + streams ---
+  Queries:       5
+  Stream frames: 5000
+  Total time:    15,10 ms
+  Avg/query:     3,02 ms
+
+[Client1] Core tests complete.
+[Server] Client Conn(0:1) disconnected. Total: 0
+
+--- Test 6: Multi-client broadcast ---
+[Server] Client Conn(0:2) connected. Total: 1
+[Server] Client Conn(1:1) connected. Total: 2
+  Clients connected: 3
+[Server] Client Conn(2:1) connected. Total: 3
+  Broadcasts sent: 100
+  Time:            5,20 ms
+  Client 0 received: 100
+  Client 1 received: 100
+  Client 2 received: 100
+  Total received:  300 (expected 300)
+  Chat relay: 20 received, 0 looped back to sender
+  Broadcast test passed.
+[Server] Client Conn(0:2) disconnected. Total: 2
+[Server] Client Conn(1:1) disconnected. Total: 1
+[Server] Client Conn(2:1) disconnected. Total: 0
+
+--- Test 7: Ping-Pong (multi-client) ---
+[Server] Client Conn(0:3) connected. Total: 1
+[Server] Client Conn(1:2) connected. Total: 2
+[Server] Client Conn(2:2) connected. Total: 3
+[Server] Client Conn(3:1) connected. Total: 4
+[Server] Client Conn(4:1) connected. Total: 5
+[Server] Client Conn(5:1) connected. Total: 6
+[Server] Client Conn(6:1) connected. Total: 7
+[Server] Client Conn(7:1) connected. Total: 8
+[Server] Client Conn(8:1) connected. Total: 9
+[Server] Client Conn(9:1) connected. Total: 10
+  Clients connected: 10
+  Ping-pongs:   10.000
+  Total time:   140,89 ms
+  Avg RTT:      14,09 µs
+  Throughput:   141.955 msg/s
   Ping-pong test passed.
 [Server] Client Conn(0:3) disconnected. Total: 9
 [Server] Client Conn(1:2) disconnected. Total: 8
