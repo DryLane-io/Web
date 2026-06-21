@@ -1,0 +1,101 @@
+BenchmarkDotNet v0.14.0, Windows 11 (10.0.26200.8655)
+AMD Ryzen 9 7950X3D, 1 CPU, 32 logical and 16 physical cores
+.NET SDK 10.0.301
+  [Host]     : .NET 10.0.9 (10.0.926.27113), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+  DefaultJob : .NET 10.0.9 (10.0.926.27113), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+
+Encode writes into a caller-owned buffer (Zao: WriteTo). The other libraries are
+shown both idiomatically (Serialize -> byte[]) and with a reused buffer
+(*_EncodeReuse) so the encode comparison is allocation-for-allocation fair.
+Lower Mean is better. Allocated is managed bytes per single operation.
+
+=== Wire size (bytes per message) ===
+  PlayerMoved          Zao=16      MemoryPack=16      MessagePack=17      Protobuf=17      Json=38
+  SpawnEntity          Zao=50      MemoryPack=57      MessagePack=46      Protobuf=50      Json=111
+  WorldSnapshot[32]    Zao=520     MemoryPack=521     MessagePack=549     Protobuf=610     Json=1272
+  WorldSnapshot[1024]  Zao=16392   MemoryPack=16393   MessagePack=19161   Protobuf=20396   Json=40992
+  Inventory[128]       Zao=1928    MemoryPack=2697    MessagePack=1414    Protobuf=1923    Json=1971
+
+
+############  PlayerMovedBench  (Tier 0: 16-byte blittable struct)  ############
+
+| Method                  |        Mean |      Error |     StdDev | Ratio  | Allocated |
+|------------------------ |------------:|-----------:|-----------:|-------:|----------:|
+| Zao_Encode              |   0.8736 ns |  0.0581 ns |  0.1714 ns |   1.05 |       0 B |
+| MemoryPack_Encode       |   5.5860 ns |  0.1917 ns |  0.5651 ns |   6.69 |      40 B |
+| MessagePack_Encode      |  44.9950 ns |  1.3355 ns |  3.9378 ns |  53.92 |      48 B |
+| Protobuf_Encode         | 140.9381 ns |  3.9639 ns | 11.6877 ns | 168.89 |     392 B |
+| Json_Encode             | 305.0473 ns |  7.9530 ns | 23.4496 ns | 365.54 |      96 B |
+| MemoryPack_EncodeReuse  |   3.1149 ns |  0.0902 ns |  0.2179 ns |   3.73 |       0 B |
+| MessagePack_EncodeReuse |  42.0881 ns |  1.1062 ns |  3.2615 ns |  50.43 |       0 B |
+| Zao_Decode              |   0.3787 ns |  0.0095 ns |  0.0089 ns |   0.45 |       0 B |
+| MemoryPack_Decode       |   0.2357 ns |  0.0057 ns |  0.0050 ns |   0.28 |       0 B |
+| MessagePack_Decode      |  52.6523 ns |  0.0810 ns |  0.0677 ns |  63.09 |       0 B |
+| Protobuf_Decode         |  84.6858 ns |  0.2313 ns |  0.1806 ns | 101.48 |     120 B |
+| Json_Decode             | 228.2848 ns |  0.7636 ns |  0.6377 ns | 273.55 |      32 B |
+
+
+############  SpawnEntityBench  (Tier 2: fixed runs + one string)  ############
+
+| Method                  |      Mean |    Error |   StdDev | Ratio | Allocated |
+|------------------------ |----------:|---------:|---------:|------:|----------:|
+| Zao_Encode              |  12.54 ns | 0.077 ns | 0.068 ns |  1.00 |       0 B |
+| MemoryPack_Encode       |  37.10 ns | 0.208 ns | 0.195 ns |  2.96 |      88 B |
+| MessagePack_Encode      |  57.62 ns | 0.218 ns | 0.170 ns |  4.60 |      72 B |
+| Protobuf_Encode         | 143.48 ns | 1.301 ns | 1.217 ns | 11.44 |     424 B |
+| Json_Encode             | 281.52 ns | 2.108 ns | 1.972 ns | 22.45 |     136 B |
+| MemoryPack_EncodeReuse  |  26.05 ns | 0.116 ns | 0.109 ns |  2.08 |       0 B |
+| MessagePack_EncodeReuse |  57.67 ns | 0.272 ns | 0.255 ns |  4.60 |       0 B |
+| Zao_Decode              |  15.53 ns | 0.116 ns | 0.109 ns |  1.24 |      72 B |
+| MemoryPack_Decode       |  31.41 ns | 0.160 ns | 0.133 ns |  2.51 |     128 B |
+| MessagePack_Decode      |  86.91 ns | 0.448 ns | 0.397 ns |  6.93 |     128 B |
+| Protobuf_Decode         | 142.82 ns | 0.886 ns | 0.829 ns | 11.39 |     216 B |
+| Json_Decode             | 377.00 ns | 2.968 ns | 2.317 ns | 30.07 |     128 B |
+
+
+############  WorldSnapshotBench  (Tier 3: nested message array)  ############
+
+| Method                  | Players |          Mean |       Error |      StdDev |   Ratio | Allocated |
+|------------------------ |-------- |--------------:|------------:|------------:|--------:|----------:|
+| Zao_Encode              |      32 |      10.75 ns |    0.236 ns |    0.232 ns |    1.00 |       0 B |
+| MemoryPack_Encode       |      32 |      78.88 ns |    2.274 ns |    6.706 ns |    7.34 |     552 B |
+| MessagePack_Encode      |      32 |     540.50 ns |   10.812 ns |   30.140 ns |   50.31 |     576 B |
+| Protobuf_Encode         |      32 |   1,996.89 ns |   55.495 ns |  163.629 ns |  185.89 |    1344 B |
+| Json_Encode             |      32 |   8,264.65 ns |  214.248 ns |  631.715 ns |  769.35 |    2632 B |
+| MemoryPack_EncodeReuse  |      32 |      36.65 ns |    0.935 ns |    2.758 ns |    3.41 |       0 B |
+| MessagePack_EncodeReuse |      32 |     491.46 ns |    9.721 ns |   23.845 ns |   45.75 |       0 B |
+| Zao_Decode              |      32 |      35.81 ns |    0.744 ns |    1.768 ns |    3.33 |     536 B |
+| MemoryPack_Decode       |      32 |      54.34 ns |    1.392 ns |    4.104 ns |    5.06 |     568 B |
+| MessagePack_Decode      |      32 |   1,082.62 ns |   27.601 ns |   81.382 ns |  100.78 |     568 B |
+| Protobuf_Decode         |      32 |   2,645.49 ns |   97.230 ns |  286.684 ns |  246.27 |    1424 B |
+| Json_Decode             |      32 |  10,295.64 ns |  246.249 ns |  726.072 ns |  958.41 |    3152 B |
+| Zao_Encode              |    1024 |     238.26 ns |    7.463 ns |   22.005 ns |    1.01 |       0 B |
+| MemoryPack_Encode       |    1024 |   1,756.83 ns |   35.091 ns |   85.416 ns |    7.44 |   16424 B |
+| MessagePack_Encode      |    1024 |  15,142.54 ns |  300.780 ns |  872.617 ns |   64.11 |   19192 B |
+| Protobuf_Encode         |    1024 |  63,874.71 ns | 1733.945 ns | 5112.577 ns |  270.41 |   84272 B |
+| Json_Encode             |    1024 | 254,741.24 ns | 12496.0 ns  | 36844.8 ns  | 1078.44 |   74096 B |
+| MemoryPack_EncodeReuse  |    1024 |     334.96 ns |    9.085 ns |   26.787 ns |    1.42 |       0 B |
+| MessagePack_EncodeReuse |    1024 |  14,249.48 ns |  287.794 ns |  848.567 ns |   60.32 |       0 B |
+| Zao_Decode              |    1024 |   1,009.23 ns |   22.347 ns |   65.889 ns |    4.27 |   16408 B |
+| MemoryPack_Decode       |    1024 |   1,496.34 ns |   29.586 ns |   69.738 ns |    6.33 |   16440 B |
+| MessagePack_Decode      |    1024 |  33,106.67 ns | 1023.624 ns | 3018.178 ns |  140.16 |   16440 B |
+| Protobuf_Decode         |    1024 |  80,102.13 ns | 2037.745 ns | 6008.337 ns |  339.11 |   41104 B |
+| Json_Decode             |    1024 | 325,544.12 ns | 8737.017 ns | 25761.29 ns | 1378.18 |   82632 B |
+
+
+############  InventoryBench  (Tier 3: Dictionary<string,int>, 128 entries)  ############
+
+| Method                  |      Mean |     Error |    StdDev | Ratio | Allocated |
+|------------------------ |----------:|----------:|----------:|------:|----------:|
+| Zao_Encode              |  1.645 us | 0.0436 us | 0.1286 us |  1.00 |       0 B |
+| MemoryPack_Encode       |  3.753 us | 0.0745 us | 0.1818 us |  2.30 |    2728 B |
+| MessagePack_Encode      |  2.863 us | 0.0560 us | 0.0719 us |  1.75 |    1440 B |
+| Protobuf_Encode         |  8.199 us | 0.1623 us | 0.3243 us |  5.02 |    5096 B |
+| Json_Encode             |  3.488 us | 0.0690 us | 0.1356 us |  2.14 |    2312 B |
+| MemoryPack_EncodeReuse  |  3.180 us | 0.0633 us | 0.1592 us |  1.95 |       0 B |
+| MessagePack_EncodeReuse |  2.737 us | 0.0265 us | 0.0234 us |  1.68 |       0 B |
+| Zao_Decode              |  3.792 us | 0.0755 us | 0.1762 us |  2.32 |    8920 B |
+| MemoryPack_Decode       |  4.221 us | 0.0838 us | 0.1644 us |  2.59 |    8952 B |
+| MessagePack_Decode      |  5.355 us | 0.1068 us | 0.2266 us |  3.28 |    8952 B |
+| Protobuf_Decode         | 14.524 us | 0.2885 us | 0.5414 us |  8.90 |   15432 B |
+| Json_Decode             | 10.122 us | 0.2018 us | 0.4738 us |  6.20 |   15816 B |
