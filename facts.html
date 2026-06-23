@@ -222,6 +222,55 @@
             <strong>storage density</strong> &mdash; DuckDB compresses; Facts keeps data raw and
             memory-mapped for speed. Honest trade, stated plainly.</p>
 
+        <div class="section-label">Head to head &middot; over the wire &middot; Facts vs QuestDB &amp; InfluxDB</div>
+        <p class="sell">The test above was <em>in-process</em>. This one is <strong>over the wire</strong>
+            &mdash; a real client/server database, where every query travels across a network
+            connection and the answer is serialized back. That&rsquo;s how you actually run
+            <strong>QuestDB</strong> and <strong>InfluxDB</strong>, two of the most popular
+            purpose-built time-series databases. Same 8.19-million-row TSBS dataset, same machine
+            (Ryzen&nbsp;9&nbsp;9950X), loopback, warm, durability matched.</p>
+        <p class="sell">Here&rsquo;s the kicker: <strong>Facts used a single connection.</strong> We
+            gave the rivals their fastest setup &mdash; <strong>eight</strong> parallel connections
+            each &mdash; because Facts doesn&rsquo;t get faster with more (one is already enough). It
+            still wins every speed test, often by a wide margin.</p>
+        <table class="cmp">
+            <thead>
+                <tr>
+                    <th>Workload</th>
+                    <th>Facts <span class="cores">(1 connection)</span></th>
+                    <th>QuestDB <span class="cores">(8, its best)</span></th>
+                    <th>InfluxDB <span class="cores">(8, its best)</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="metric">Ingest</td>                     <td class="num win">24.6 M rows/s</td><td class="num lose">1.65 M rows/s</td><td class="num lose">0.24 M rows/s</td></tr>
+                <tr><td class="metric">Latest value (point query)</td> <td class="num win">39 &micro;s</td>    <td class="num lose">260 &micro;s</td>  <td class="num lose">56 ms</td></tr>
+                <tr><td class="metric">Range read (one window)</td>     <td class="num win">0.25 ms</td>       <td class="num lose">1.15 ms</td>       <td class="num lose">36 ms</td></tr>
+                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">5.2 ms</td>        <td class="num lose">105 ms</td>         <td class="num lose">846 ms</td></tr>
+                <tr><td class="metric">Storage per point</td>          <td class="num lose">96 B</td>          <td class="num lose">111 B</td>          <td class="num win">~88 B</td></tr>
+            </tbody>
+        </table>
+        <p class="sell"><span class="kicker">What that means.</span> On ingest, Facts is about
+            <strong>15&times; faster than QuestDB</strong> and roughly <strong>100&times; faster than
+            InfluxDB</strong>. On the high-CPU scan it&rsquo;s <strong>~20&times;</strong> QuestDB and
+            <strong>~160&times;</strong> InfluxDB. And the point query &mdash; &ldquo;what&rsquo;s the
+            latest reading for each sensor,&rdquo; the single most common dashboard query &mdash;
+            comes back in <strong>39 millionths of a second</strong>. (A millisecond is 1,000 of
+            those; Facts answers before a typical network round-trip would even finish.)</p>
+        <p class="note">Medians + p99 from our open harness (<strong>Facts.Benchmarks</strong>,
+            <code>--tier&nbsp;b</code>) on real TSBS <em>cpu-only</em> data; each engine shown at its
+            <strong>best</strong> configuration. <strong>Why the gap?</strong> Facts speaks a compact
+            <strong>binary</strong> wire format; QuestDB and InfluxDB use <em>text</em> line protocols
+            &mdash; every number is spelled out as ASCII and re-parsed, a tax that dominates at
+            millions of rows per second. Facts&rsquo; ingest tops out at one connection because a
+            single server thread is already saturating the link; the rivals genuinely need the extra
+            connections to reach the numbers shown. <strong>The honest losses:</strong> InfluxDB packs
+            points a touch denser on disk (~88&nbsp;B vs our&nbsp;96), and both rivals are full query
+            languages (SQL&nbsp;/&nbsp;Flux, joins, ad-hoc) with far bigger ecosystems &mdash; Facts
+            trades that breadth for raw speed on the queries it does support. InfluxDB&rsquo;s v2/Flux
+            engine is also known to be slow on these access patterns; its newer v3 would narrow the
+            query gap.</p>
+
         <div class="section-label">Live showcase &middot; benchmark dashboard</div>
         <div class="shot-wrap" id="shot-wrap">
             <img class="shot" src="img/facts-demo.png" alt="Facts live showcase and benchmark dashboard">
