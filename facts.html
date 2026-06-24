@@ -172,6 +172,77 @@
             margin: 4px 0 8px;
         }
         .note strong { color: rgba(214, 224, 244, 0.92); }
+
+        /* Data-model breakdown: timestamp+tag core, columns, blob. */
+        .model { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 8px 0 8px; }
+        .model .part {
+            background: #07080c;
+            border: 1px solid rgba(106, 168, 254, 0.18);
+            border-radius: 8px;
+            padding: 18px 20px;
+        }
+        .model .part h3 {
+            color: #fff;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .model .part .tag {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.66rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(150, 200, 255, 0.85);
+            border: 1px solid rgba(106, 168, 254, 0.3);
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        .model .part p { color: rgba(206, 216, 236, 0.88); font-size: 0.9rem; line-height: 1.6; }
+        .model .part p + p { margin-top: 8px; }
+        .model .part strong { color: #fff; }
+        .model .part a { color: #cfe0ff; text-decoration: none; border-bottom: 1px solid rgba(106, 168, 254, 0.4); }
+        .model .part a:hover { color: #fff; }
+
+        /* Demo cards (mirrors the stack page). */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        a.card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: #07080c;
+            border: 1px solid rgba(106, 168, 254, 0.18);
+            border-radius: 8px;
+            padding: 18px 20px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        a.card:hover {
+            border-color: rgba(106, 168, 254, 0.55);
+            box-shadow: 0 0 28px rgba(106, 168, 254, 0.18);
+            transform: translateY(-2px);
+        }
+        .card .tag {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.66rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(150, 200, 255, 0.85);
+            border: 1px solid rgba(106, 168, 254, 0.3);
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        .card .name {
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-shadow: 0 0 14px rgba(106, 168, 254, 0.4);
+        }
+        .card .what { color: rgba(206, 216, 236, 0.9); font-size: 0.9rem; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -192,7 +263,83 @@
             sensors or market symbols, then ask &ldquo;what did device&nbsp;4200 look like between
             09:00 and 09:05&rdquo; &mdash; and get the answer back before a network round-trip would
             have even finished.</p>
-        <a class="cta" href="https://live.drylane.io">See it live &#10230;</a>
+
+        <div class="section-label">The data model</div>
+        <p class="sell">Every record is dead simple, which is exactly why it&rsquo;s fast. A fact is a
+            <strong>timestamp</strong> and a <strong>tag</strong> &mdash; that pair is the core. Onto
+            it you attach two kinds of payload, depending on the shape of your data.</p>
+        <div class="model">
+            <div class="part">
+                <span class="tag">the core</span>
+                <h3>Timestamp + Tag</h3>
+                <p>The <strong>timestamp</strong> orders the fact; the <strong>tag</strong> names the
+                    series it belongs to &mdash; a device, a market symbol, a driver, a log source.</p>
+                <p>Everything is indexed and queried on this pair: <em>&ldquo;this tag, this time
+                    window.&rdquo;</em> Nothing else to declare to get a working store.</p>
+            </div>
+            <div class="part">
+                <span class="tag">fixed size</span>
+                <h3>Columns</h3>
+                <p>For fixed-size fields &mdash; a price, a temperature, an RPM &mdash; declare typed
+                    <strong>columns</strong>. They&rsquo;re stored <strong>columnar</strong>, so a
+                    SIMD kernel streams one column at full memory bandwidth.</p>
+                <p>That&rsquo;s what makes <strong>point access and scans cheap</strong>: read just
+                    the column you asked for, never the rest of the row.</p>
+            </div>
+            <div class="part">
+                <span class="tag">variable size</span>
+                <h3>Blob</h3>
+                <p>For variable-size payloads &mdash; a log line, a JSON document, a packet, a Dry.Wire
+                    record &mdash; attach a <strong>blob</strong>. Facts stores it opaque and hands it
+                    straight back.</p>
+                <p>Blobs can be <strong>compressed by a codec you plug in</strong> (e.g. LZ4): Facts
+                    stores the packed bytes and <strong>decompresses transparently on read</strong>, so
+                    the on-disk footprint shrinks while your code still sees plain payloads. Ideal for
+                    <strong>logs and journals</strong> &mdash; see the
+                    <a href="https://log.drylane.io">Log Viewer</a> demo.</p>
+            </div>
+        </div>
+
+        <div class="section-label">See it live &middot; demos running on the box</div>
+        <p class="sell">Every card is a real Facts engine serving real queries &mdash; not a screenshot.</p>
+        <div class="grid">
+            <a class="card" href="https://live.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Market Wall</div>
+                <div class="what">A command-center wall ingesting synthetic market data, with queries
+                    running continuously against the live stream.</div>
+            </a>
+            <a class="card" href="https://f1.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">F1 Replay</div>
+                <div class="what">A real Formula&nbsp;1 race ingested once, then queried &mdash;
+                    point-in-time and whole-race aggregates in microseconds.</div>
+            </a>
+            <a class="card" href="https://log.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Log Viewer</div>
+                <div class="what">Compressed blobs in action: a virtualized browser over a huge live
+                    log, reading only the visible window &mdash; including the unsealed tail.</div>
+            </a>
+            <a class="card" href="https://api.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Benchmarks</div>
+                <div class="what">The full query suite run live &mdash; every API surface with its
+                    median and p99 latency, straight from the engine.</div>
+            </a>
+            <a class="card" href="https://chaos.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Replication &amp; Failover</div>
+                <div class="what">A two-node cluster you can break on purpose: cut the link, force a
+                    failover, watch it heal &mdash; no split-brain, bounded loss.</div>
+            </a>
+            <a class="card" href="https://pi.drylane.io">
+                <div class="tag">live demo</div>
+                <div class="name">Raspberry Pi</div>
+                <div class="what">The same engine on a $35 ARM board &mdash; small enough to run right
+                    where the data is born.</div>
+            </a>
+        </div>
 
         <div class="section-label">Head to head &middot; Facts vs DuckDB</div>
         <p class="sell">We put Facts against <strong>DuckDB</strong> &mdash; a fast in-process
