@@ -163,7 +163,7 @@
             and a <strong>serializer</strong> to pack it on the wire. Every seam between them is a
             copy, a serialization pass, and a point of latency.</p>
         <p class="lede"><strong>Drylane is all three, fused into one stack that runs on a single
-            box</strong> &mdash; ingesting <strong>66 million records a second</strong> and answering
+            box</strong> &mdash; ingesting <strong>millions of records a second</strong> and answering
             queries in <strong>microseconds</strong>. No cluster required to be fast.</p>
         <p class="sub">Runs on <strong>Windows</strong> and <strong>Linux</strong>, tuned down to the
             SIMD for <strong>Intel</strong>, <strong>AMD</strong> and <strong>ARM</strong> &mdash; the
@@ -185,15 +185,15 @@
             </a>
             <a class="card" href="nio.html">
                 <div class="name">Nio</div>
-                <div class="what">The zero-copy network layer &mdash; ~100M messages/second, ~6&micro;s
-                    round-trips over loopback.</div>
+                <div class="what">The zero-copy network layer &mdash; tens of millions of
+                    messages/second, low-microsecond round-trips over loopback.</div>
                 <div class="why">Replaces the message queue. Where you'd reach for Kafka, without
                     the copies and the hops.</div>
             </a>
             <a class="card" href="zao.html">
                 <div class="name">Zao</div>
                 <div class="what">Serialization at memcpy speed &mdash; tiered codegen reaching
-                    ~67 GB/s on the fast path.</div>
+                    tens of GB/s on the fast path.</div>
                 <div class="why">Replaces the serializer. Where you'd reach for Protobuf, at the
                     speed of a raw memory copy.</div>
             </a>

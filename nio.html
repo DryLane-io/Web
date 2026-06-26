@@ -159,12 +159,12 @@
         <a class="back" href="stack.html">&larr; The Dry Stack</a>
 
         <h1>Nio</h1>
-        <div class="tagline">Zero-copy async I/O &amp; messaging &mdash; ~100M msg/s, ~6 &micro;s round-trips over loopback.</div>
+        <div class="tagline">Zero-copy async I/O &amp; messaging &mdash; tens of millions of msg/s, low-microsecond round-trips over loopback.</div>
         <div class="tagline">NOTE: This is using the C# wrapper. Niolib is faster.</div>
 
         <p class="sell"><span class="kicker">What it is.</span> The networking layer the rest of the
             stack rides on &mdash; messages move <strong>without copies</strong>, straight from one
-            buffer to the wire and back, at roughly <strong>100 million messages a second</strong>.</p>
+            buffer to the wire and back, at <strong>tens of millions of messages a second</strong>.</p>
         <p class="sell"><span class="kicker">The problem it kills.</span> Most systems pay a tax on
             every message: serialize, copy into the kernel, copy out, deserialize. Where you'd reach
             for Kafka or a socket library, Nio deletes those copies &mdash; the round-trip is
