@@ -452,12 +452,12 @@
             </tbody>
         </table>
         <p class="sell"><span class="kicker">What that means.</span> On ingest, Facts is about
-            <strong>15&times; faster than QuestDB</strong> and roughly <strong>100&times; faster than
-            InfluxDB</strong>. On the high-CPU scan it&rsquo;s <strong>~20&times;</strong> QuestDB and
-            <strong>~160&times;</strong> InfluxDB. And the point query &mdash; &ldquo;what&rsquo;s the
-            latest reading for each sensor,&rdquo; the single most common dashboard query &mdash;
-            comes back in <strong>39 millionths of a second</strong>. (A millisecond is 1,000 of
-            those; Facts answers before a typical network round-trip would even finish.)</p>
+            <strong>an order of magnitude faster than QuestDB</strong> and <strong>two orders of
+            magnitude faster than InfluxDB</strong>; the high-CPU scan widens the gap further. And the
+            point query &mdash; &ldquo;what&rsquo;s the latest reading for each sensor,&rdquo; the
+            single most common dashboard query &mdash; comes back in <strong>tens of microseconds</strong>.
+            Facts answers before a typical network round-trip would even finish. (Exact figures in the
+            table above.)</p>
         <p class="note">Medians + p99 from our open harness (<strong>Facts.Benchmarks</strong>,
             <code>--tier&nbsp;b</code>) on real TSBS <em>cpu-only</em> data; each engine shown at its
             <strong>best</strong> configuration. <strong>Why the gap?</strong> Facts speaks a compact
