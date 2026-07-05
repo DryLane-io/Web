@@ -231,10 +231,16 @@
                 instead of dropping, messages fragmented up to 1&nbsp;MiB, and gap repair that fetches
                 straight from the origin's log.</li>
             <li><strong>Failover comes from the storage layer.</strong> Durable subjects are Facts
-                streams, so replication and leader failover are the
-                <a href="https://chaos.drylane.io" style="color:#cfe0ff;">cluster you can already break
-                live</a> &mdash; not a second consensus system inside the messaging tier.</li>
+                streams, so a leader can die and the consumer keeps delivering the next message &mdash;
+                <a href="https://relay.drylane.io" style="color:#cfe0ff;">kill a node live and watch</a>
+                &mdash; not a second consensus system inside the messaging tier.</li>
         </ul>
+
+        <div class="section-label">See it live</div>
+        <p class="sell">A real two-node cluster, one button. Kill the leader and watch the surviving
+            consumer's delivered counter climb straight through the failover &mdash; zero gaps, zero
+            duplicates, the same subscriber that never reconnected.</p>
+        <a class="cta" href="https://relay.drylane.io">Break the cluster &#10230;</a>
 
         <div class="section-label">When you should use NATS or Kafka instead</div>
         <p class="sell">Relay is <strong>embedded and .NET-first</strong> &mdash; it wins by deleting
