@@ -175,6 +175,43 @@
         .note strong { color: rgba(214, 224, 244, 0.92); }
         .fn { color: #8fb4ff; font-size: 0.66em; vertical-align: super; line-height: 0; }
 
+        /* Gap chart — the head-to-head table reframed so the *ratio* is the hero. Each
+           metric gets a full-width track per engine (fill ∝ goodness; the value is
+           overlaid so even a sub-pixel fill still reads) and a big glowing multiplier.
+           Colour = outcome: blue = Facts wins, green = a rival wins, red = the worse
+           number. Rows we lose render muted and honest, never hyped. */
+        .gap { margin: 12px 0 14px; display: flex; flex-direction: column; gap: 18px; }
+        .gap-row { display: grid; grid-template-columns: 172px 1fr 122px; gap: 18px; align-items: center; }
+        .gap-metric { color: rgba(214, 224, 244, 0.92); font-size: 0.9rem; line-height: 1.3; }
+        .gap-dir { display: block; margin-top: 3px; font-size: 0.64rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(160, 170, 200, 0.6); }
+        .gap-bars { display: flex; flex-direction: column; gap: 5px; }
+        .gap-bar { position: relative; height: 27px; background: rgba(255, 255, 255, 0.035); border-radius: 5px; overflow: hidden; }
+        .gap-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; min-width: 3px; }
+        .gap-fill.facts { background: linear-gradient(90deg, rgba(106, 168, 254, 0.55), rgba(106, 168, 254, 0.20)); box-shadow: inset 0 0 0 1px rgba(106, 168, 254, 0.5); }
+        .gap-fill.lose  { background: linear-gradient(90deg, rgba(255, 123, 136, 0.30), rgba(255, 123, 136, 0.10)); box-shadow: inset 0 0 0 1px rgba(255, 123, 136, 0.28); }
+        .gap-fill.win   { background: linear-gradient(90deg, rgba(143, 230, 176, 0.28), rgba(143, 230, 176, 0.09)); box-shadow: inset 0 0 0 1px rgba(143, 230, 176, 0.3); }
+        .gap-lab { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 10px; height: 27px; line-height: 27px; padding: 0 11px; font-size: 0.78rem; white-space: nowrap; }
+        .gap-lab .nm { color: rgba(224, 232, 246, 0.82); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; }
+        .gap-lab .nm.me { color: #fff; font-weight: bold; }
+        .gap-lab .vl { color: rgba(224, 232, 246, 0.92); font-variant-numeric: tabular-nums; }
+        .gap-mult { text-align: right; line-height: 1.05; }
+        .gap-mult .x { font-size: 1.7rem; font-weight: bold; color: #8fe6b0; text-shadow: 0 0 16px rgba(143, 230, 176, 0.45); letter-spacing: 1px; }
+        .gap-mult .lbl { display: block; margin-top: 2px; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(143, 230, 176, 0.7); }
+        /* two rivals: two stacked, smaller multipliers */
+        .gap-mult.two .x { font-size: 1.18rem; display: block; }
+        .gap-mult.two .x + .x { margin-top: 5px; }
+        .gap-mult.two .who { font-size: 0.56rem; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; color: rgba(143, 230, 176, 0.6); margin-left: 5px; }
+        /* rows we lose: muted, honest */
+        .gap-mult.mute .x { color: rgba(224, 232, 246, 0.5); text-shadow: none; }
+        .gap-mult.mute .who { color: rgba(224, 232, 246, 0.4); }
+        .gap-mult.mute .lbl { color: rgba(224, 232, 246, 0.4); }
+
+        @media (max-width: 768px) {
+            .gap-row { grid-template-columns: 1fr; gap: 9px; }
+            .gap-mult { text-align: left; }
+            .gap-mult.two .x { display: inline-block; margin-top: 0; margin-right: 16px; }
+        }
+
         /* Data-model breakdown: timestamp+tag core, columns, blob. */
         .model { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 8px 0 8px; }
         .model .part {
@@ -235,6 +272,77 @@
             border-radius: 4px;
             padding: 2px 8px;
         }
+
+        /* ── Demo-card mini-previews: tiny looping animations that evoke each live demo.
+           Pure CSS/SVG, no image/video assets, paused for reduced-motion. Sits atop a card. */
+        .demo-prev {
+            position: relative;
+            height: 74px;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            background: #05060a;
+            border: 1px solid rgba(106, 168, 254, 0.14);
+            overflow: hidden;
+        }
+        a.card:hover .demo-prev { border-color: rgba(106, 168, 254, 0.32); }
+
+        .prev-wall { display: flex; align-items: flex-end; gap: 3px; padding: 9px 10px; }
+        .prev-wall i {
+            flex: 1; height: 100%; border-radius: 2px 2px 0 0; transform-origin: bottom; transform: scaleY(.25);
+            background: linear-gradient(180deg, rgba(106, 168, 254, 0.95), rgba(106, 168, 254, 0.2));
+            animation: wallBar 1.15s ease-in-out infinite;
+        }
+        @keyframes wallBar { 0%, 100% { transform: scaleY(.22); } 50% { transform: scaleY(1); } }
+
+        .prev-f1 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+        .prev-fail svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .prev-fail .ln {
+            fill: none; stroke: #6ea8fe; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 100; stroke-dashoffset: 100; filter: drop-shadow(0 0 4px rgba(106, 168, 254, 0.6));
+            animation: failDraw 3.4s ease-in-out infinite;
+        }
+        @keyframes failDraw { 0% { stroke-dashoffset: 100; } 72%, 100% { stroke-dashoffset: 0; } }
+        .prev-fail .fail-kill {
+            position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+            font-size: 0.5rem; letter-spacing: 1px; color: rgba(255, 123, 136, 0.9);
+            background: rgba(5, 6, 10, 0.7); padding: 0 3px; border-radius: 2px;
+        }
+
+        .prev-bench { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 12px; }
+        .prev-bench i {
+            height: 7px; border-radius: 4px; box-shadow: 0 0 8px rgba(106, 168, 254, 0.22);
+            background: linear-gradient(90deg, rgba(106, 168, 254, 0.85), rgba(106, 168, 254, 0.25));
+            animation: benchFill 2.4s ease-in-out infinite alternate;
+        }
+        @keyframes benchFill { from { width: 24%; } to { width: 92%; } }
+
+        .prev-log .rows {
+            position: absolute; left: 10px; right: 10px; top: 8px;
+            display: flex; flex-direction: column; gap: 6px; animation: logScroll 3.4s linear infinite;
+        }
+        .prev-log .rows i { height: 5px; border-radius: 3px; background: rgba(150, 185, 235, 0.35); }
+        @keyframes logScroll { to { transform: translateY(-50%); } }
+
+        .prev-pi { display: flex; align-items: center; justify-content: center; }
+        .prev-pi .soc {
+            position: relative; width: 34px; height: 34px; border-radius: 5px;
+            background: #0e1730; border: 1px solid rgba(106, 168, 254, 0.5); box-shadow: 0 0 12px rgba(106, 168, 254, 0.25);
+        }
+        .prev-pi .soc::after { content: ""; position: absolute; inset: 9px; border-radius: 3px; background: rgba(106, 168, 254, 0.28); }
+        .prev-pi .ping {
+            position: absolute; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(143, 230, 176, 0.8);
+            animation: piPing 1.9s ease-out infinite;
+        }
+        @keyframes piPing { 0% { transform: scale(.7); opacity: .8; } 100% { transform: scale(2.1); opacity: 0; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .demo-prev i, .demo-prev .ln, .demo-prev .rows, .demo-prev .ping { animation: none !important; }
+            .prev-wall i { transform: scaleY(.6); }
+            .prev-bench i { width: 70%; }
+            .prev-fail .ln { stroke-dashoffset: 0; }
+        }
+
         .card .name {
             color: #fff;
             font-size: 1.15rem;
@@ -360,36 +468,42 @@
         <p class="sell">Every card is a real Facts engine serving real queries &mdash; not a screenshot.</p>
         <div class="grid">
             <a class="card" href="https://live.drylane.io">
+                <div class="demo-prev prev-wall" aria-hidden="true"><i style="animation-delay:-.05s"></i><i style="animation-delay:-.5s"></i><i style="animation-delay:-.9s"></i><i style="animation-delay:-.2s"></i><i style="animation-delay:-.7s"></i><i style="animation-delay:-1.05s"></i><i style="animation-delay:-.35s"></i><i style="animation-delay:-.6s"></i><i style="animation-delay:-.15s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-.45s"></i><i style="animation-delay:-.95s"></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.65s"></i></div>
                 <div class="tag">live demo</div>
                 <div class="name">Market Wall</div>
                 <div class="what">A command-center wall ingesting synthetic market data, with queries
                     running continuously against the live stream.</div>
             </a>
             <a class="card" href="https://f1.drylane.io">
+                <div class="demo-prev prev-f1" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="xMidYMid meet"><ellipse cx="100" cy="37" rx="62" ry="20" fill="none" stroke="rgba(106,168,254,.35)" stroke-width="2" stroke-dasharray="4 5"/><circle r="4" fill="#8fe6b0"><animateMotion dur="2.6s" repeatCount="indefinite" path="M 38 37 A 62 20 0 1 1 162 37 A 62 20 0 1 1 38 37"/></circle></svg></div>
                 <div class="tag">live demo</div>
                 <div class="name">F1 Replay</div>
                 <div class="what">A real Formula&nbsp;1 race ingested once, then queried &mdash;
                     point-in-time and whole-race aggregates in microseconds.</div>
             </a>
             <a class="card" href="https://log.drylane.io">
+                <div class="demo-prev prev-log" aria-hidden="true"><div class="rows"><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i></div></div>
                 <div class="tag">live demo</div>
                 <div class="name">Log Viewer</div>
                 <div class="what">Compressed blobs in action: a virtualized browser over a huge live
                     log, reading only the visible window &mdash; including the unsealed tail.</div>
             </a>
             <a class="card" href="https://api.drylane.io">
+                <div class="demo-prev prev-bench" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-1.6s"></i></div>
                 <div class="tag">live demo</div>
                 <div class="name">Benchmarks</div>
                 <div class="what">The full query suite run live &mdash; every API surface with its
                     median and p99 latency, straight from the engine.</div>
             </a>
             <a class="card" href="https://chaos.drylane.io">
+                <div class="demo-prev prev-fail" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="none"><line x1="100" y1="6" x2="100" y2="68" stroke="rgba(255,123,136,.5)" stroke-width="1.5" stroke-dasharray="3 3"/><path class="ln" pathLength="100" d="M 6 64 L 42 55 L 72 51 L 100 41 L 130 31 L 166 19 L 194 10"/></svg><span class="fail-kill">KILL</span></div>
                 <div class="tag">live demo</div>
                 <div class="name">Replication &amp; Failover</div>
                 <div class="what">A two-node cluster you can break on purpose: cut the link, force a
                     failover, watch it heal &mdash; no split-brain, bounded loss.</div>
             </a>
             <a class="card" href="https://pi.drylane.io">
+                <div class="demo-prev prev-pi" aria-hidden="true"><span class="ping"></span><span class="soc"></span></div>
                 <div class="tag">live demo</div>
                 <div class="name">Raspberry Pi</div>
                 <div class="what">The same engine on a $35 ARM board &mdash; small enough to run right
@@ -402,23 +516,56 @@
             analytical engine &mdash; on real <strong>TSBS</strong> data (the standard time-series
             benchmark): the same 8.19-million-row dataset, on the same machine, warm. Facts ran on
             <strong>one core</strong>; DuckDB got <strong>all 32</strong>.</p>
-        <table class="cmp">
-            <thead>
-                <tr>
-                    <th>Workload</th>
-                    <th>Facts <span class="cores">(1 core)</span></th>
-                    <th>DuckDB <span class="cores">(32 cores)</span></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td class="metric">Ingest</td>                <td class="num win">20 M rows/s</td>   <td class="num lose">2.3 M rows/s</td></tr>
-                <tr><td class="metric">Latest value (point query)</td><td class="num win">~0.2 &micro;s</td>  <td class="num lose">~4.3 ms</td></tr>
-                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">107 M rows/s</td><td class="num">47 M rows/s</td></tr>
-                <tr><td class="metric">Full-range aggregate</td>    <td class="num win">1.6 ms</td>        <td class="num">7.9 ms</td></tr>
-                <tr><td class="metric">Columnar scan (SIMD kernel)</td><td class="num win">66 GB/s</td>    <td class="num lose">7 GB/s</td></tr>
-                <tr><td class="metric">Storage per point</td>       <td class="num">96 B<sup class="fn">&dagger;</sup></td>          <td class="num win">25 B</td></tr>
-            </tbody>
-        </table>
+        <div class="gap" aria-label="Facts versus DuckDB — per-metric speed gap; Facts on one core, DuckDB on all 32">
+            <div class="gap-row">
+                <div class="gap-metric">Ingest<span class="gap-dir">higher is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 core</span><span class="vl">20 M/s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:11.5%"></div><div class="gap-lab"><span class="nm">DuckDB &middot; 32 cores</span><span class="vl">2.3 M/s</span></div></div>
+                </div>
+                <div class="gap-mult"><span class="x">8.7&times;</span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Latest value <span class="gap-dir">point query &middot; lower is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 core</span><span class="vl">~0.2 &micro;s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:0.05%"></div><div class="gap-lab"><span class="nm">DuckDB &middot; 32 cores</span><span class="vl">~4.3 ms</span></div></div>
+                </div>
+                <div class="gap-mult"><span class="x">~21,000&times;</span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">High-CPU filter <span class="gap-dir">TSBS query &middot; higher is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 core</span><span class="vl">107 M/s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:43.9%"></div><div class="gap-lab"><span class="nm">DuckDB &middot; 32 cores</span><span class="vl">47 M/s</span></div></div>
+                </div>
+                <div class="gap-mult"><span class="x">2.3&times;</span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Full-range aggregate<span class="gap-dir">lower is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 core</span><span class="vl">1.6 ms</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:20.3%"></div><div class="gap-lab"><span class="nm">DuckDB &middot; 32 cores</span><span class="vl">7.9 ms</span></div></div>
+                </div>
+                <div class="gap-mult"><span class="x">4.9&times;</span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Columnar scan <span class="gap-dir">SIMD kernel &middot; higher is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 core</span><span class="vl">66 GB/s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:10.6%"></div><div class="gap-lab"><span class="nm">DuckDB &middot; 32 cores</span><span class="vl">7 GB/s</span></div></div>
+                </div>
+                <div class="gap-mult"><span class="x">9.4&times;</span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Storage / point<span class="gap-dir">lower is better &middot; our honest loss</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:26%"></div><div class="gap-lab"><span class="nm me">Facts<sup class="fn">&dagger;</sup></span><span class="vl">96 B</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill win" style="width:100%"></div><div class="gap-lab"><span class="nm">DuckDB</span><span class="vl">25 B</span></div></div>
+                </div>
+                <div class="gap-mult mute"><span class="x">3.8&times;</span><span class="lbl">more</span></div>
+            </div>
+        </div>
         <p class="note">Medians from our open harness (<strong>Facts.Benchmarks</strong>) on real
             TSBS <em>cpu-only</em> data. DuckDB got every advantage: all cores, its fastest bulk-load
             (Parquet&nbsp;<code>COPY</code>) and a host index. Facts wins on one core everywhere except
@@ -440,30 +587,60 @@
             gave the rivals their fastest setup &mdash; <strong>eight</strong> parallel connections
             each &mdash; because Facts doesn&rsquo;t get faster with more (one is already enough). It
             still wins every speed test, often by a wide margin.</p>
-        <table class="cmp">
-            <thead>
-                <tr>
-                    <th>Workload</th>
-                    <th>Facts <span class="cores">(1 connection)</span></th>
-                    <th>QuestDB <span class="cores">(8, its best)</span></th>
-                    <th>InfluxDB <span class="cores">(8, its best)</span></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td class="metric">Ingest</td>                     <td class="num win">24.6 M rows/s</td><td class="num lose">1.65 M rows/s</td><td class="num lose">0.24 M rows/s</td></tr>
-                <tr><td class="metric">Latest value (point query)</td> <td class="num win">39 &micro;s</td>    <td class="num">260 &micro;s</td>  <td class="num lose">56 ms</td></tr>
-                <tr><td class="metric">Range read (one window)</td>     <td class="num win">0.25 ms</td>       <td class="num">1.15 ms</td>       <td class="num lose">36 ms</td></tr>
-                <tr><td class="metric">High-CPU filter (TSBS query)</td><td class="num win">5.2 ms</td>        <td class="num lose">105 ms</td>         <td class="num lose">846 ms</td></tr>
-                <tr><td class="metric">Storage per point <span class="cores">(at rest on disk)</span></td><td class="num">96 B<sup class="fn">&dagger;</sup></td><td class="num win">~23 B</td><td class="num win">~86 B</td></tr>
-            </tbody>
-        </table>
+        <div class="gap" aria-label="Facts versus QuestDB and InfluxDB over the wire — Facts on a single connection, rivals on eight each">
+            <div class="gap-row">
+                <div class="gap-metric">Ingest<span class="gap-dir">higher is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 conn</span><span class="vl">24.6 M/s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:6.7%"></div><div class="gap-lab"><span class="nm">QuestDB &middot; 8</span><span class="vl">1.65 M/s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:0.98%"></div><div class="gap-lab"><span class="nm">InfluxDB &middot; 8</span><span class="vl">0.24 M/s</span></div></div>
+                </div>
+                <div class="gap-mult two"><span class="x">15&times;<span class="who">Quest</span></span><span class="x">102&times;<span class="who">Influx</span></span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Latest value <span class="gap-dir">point query &middot; lower is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 conn</span><span class="vl">39 &micro;s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:15%"></div><div class="gap-lab"><span class="nm">QuestDB &middot; 8</span><span class="vl">260 &micro;s</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:0.07%"></div><div class="gap-lab"><span class="nm">InfluxDB &middot; 8</span><span class="vl">56 ms</span></div></div>
+                </div>
+                <div class="gap-mult two"><span class="x">6.7&times;<span class="who">Quest</span></span><span class="x">~1,400&times;<span class="who">Influx</span></span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Range read <span class="gap-dir">one window &middot; lower is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 conn</span><span class="vl">0.25 ms</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:21.7%"></div><div class="gap-lab"><span class="nm">QuestDB &middot; 8</span><span class="vl">1.15 ms</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:0.69%"></div><div class="gap-lab"><span class="nm">InfluxDB &middot; 8</span><span class="vl">36 ms</span></div></div>
+                </div>
+                <div class="gap-mult two"><span class="x">4.6&times;<span class="who">Quest</span></span><span class="x">144&times;<span class="who">Influx</span></span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">High-CPU filter <span class="gap-dir">TSBS query &middot; lower is better</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill facts" style="width:100%"></div><div class="gap-lab"><span class="nm me">Facts &middot; 1 conn</span><span class="vl">5.2 ms</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:4.95%"></div><div class="gap-lab"><span class="nm">QuestDB &middot; 8</span><span class="vl">105 ms</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:0.61%"></div><div class="gap-lab"><span class="nm">InfluxDB &middot; 8</span><span class="vl">846 ms</span></div></div>
+                </div>
+                <div class="gap-mult two"><span class="x">20&times;<span class="who">Quest</span></span><span class="x">163&times;<span class="who">Influx</span></span><span class="lbl">faster</span></div>
+            </div>
+            <div class="gap-row">
+                <div class="gap-metric">Storage / point<span class="gap-dir">at rest &middot; lower is better &middot; our honest loss</span></div>
+                <div class="gap-bars">
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:24%"></div><div class="gap-lab"><span class="nm me">Facts<sup class="fn">&dagger;</sup></span><span class="vl">96 B</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill win" style="width:100%"></div><div class="gap-lab"><span class="nm">QuestDB</span><span class="vl">~23 B</span></div></div>
+                    <div class="gap-bar"><div class="gap-fill lose" style="width:26.7%"></div><div class="gap-lab"><span class="nm">InfluxDB</span><span class="vl">~86 B</span></div></div>
+                </div>
+                <div class="gap-mult two mute"><span class="x">4.2&times;<span class="who">Quest</span></span><span class="x">1.1&times;<span class="who">Influx</span></span><span class="lbl">more</span></div>
+            </div>
+        </div>
         <p class="sell"><span class="kicker">What that means.</span> On ingest, Facts is about
             <strong>an order of magnitude faster than QuestDB</strong> and <strong>two orders of
             magnitude faster than InfluxDB</strong>; the high-CPU scan widens the gap further. And the
             point query &mdash; &ldquo;what&rsquo;s the latest reading for each sensor,&rdquo; the
             single most common dashboard query &mdash; comes back in <strong>tens of microseconds</strong>.
-            Facts answers before a typical network round-trip would even finish. (Exact figures in the
-            table above.)</p>
+            Facts answers before a typical network round-trip would even finish. (Exact figures shown
+            above.)</p>
         <p class="note">Medians + p99 from our open harness (<strong>Facts.Benchmarks</strong>,
             <code>--tier&nbsp;b</code>) on real TSBS <em>cpu-only</em> data; each engine shown at its
             <strong>best</strong> configuration. <strong>Why the gap?</strong> Facts speaks a compact

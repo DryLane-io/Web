@@ -71,6 +71,142 @@
         }
         .sub strong { color: rgba(224, 232, 246, 0.95); }
 
+        /* ── Fusion diagram: the pitch made visual. Three glued-together systems —
+           each seam a copy, a serialize, a hop — fuse into one process. Pure CSS so it
+           reflows to a column on mobile and inherits the site's type/colour tokens.
+           Red-tinted "before" (the problem) → glowing blue "after" (the stack). */
+        .fusion {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 22px;
+            margin: 34px 0 12px;
+        }
+        .fusion .before, .fusion .after { flex: 1 1 300px; max-width: 400px; }
+
+        .fbox {
+            background: #07080c;
+            border: 1px solid rgba(255, 123, 136, 0.28);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .fbox-k { color: rgba(230, 239, 255, 0.92); font-size: 0.98rem; letter-spacing: 1px; font-weight: bold; }
+        .fbox-s { color: rgba(170, 182, 208, 0.7); font-size: 0.78rem; margin-top: 2px; }
+
+        /* Seam between two systems: a faint line with the three costs stamped on it. */
+        .seam {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 0;
+            position: relative;
+        }
+        .seam::before {
+            content: "";
+            position: absolute;
+            left: 50%; top: 0; bottom: 0;
+            width: 1px;
+            background: rgba(255, 123, 136, 0.35);
+            transform: translateX(-50%);
+        }
+        .seam span {
+            position: relative;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #ff7b88;
+            background: #0c0d12;
+            border: 1px solid rgba(255, 123, 136, 0.3);
+            border-radius: 4px;
+            padding: 1px 7px;
+        }
+        .before-tag {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255, 123, 136, 0.7);
+        }
+
+        .fuse { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .fuse-arrow { font-size: 1.8rem; line-height: 1; color: rgba(150, 200, 255, 0.9); text-shadow: 0 0 14px rgba(106, 168, 254, 0.5); }
+        .fuse-word { font-size: 0.66rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(150, 200, 255, 0.75); }
+
+        .after .abox {
+            background: #07080c;
+            border: 1px solid rgba(106, 168, 254, 0.45);
+            border-radius: 10px;
+            padding: 18px 20px;
+            box-shadow: 0 0 34px rgba(106, 168, 254, 0.16);
+        }
+        .abox-name {
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 16px rgba(106, 168, 254, 0.5);
+            margin-bottom: 10px;
+        }
+        .abox-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: rgba(214, 224, 244, 0.92);
+            font-size: 0.98rem;
+            letter-spacing: 1px;
+            padding: 3px 0;
+        }
+        .abox-row .dot { width: 6px; height: 6px; border-radius: 50%; background: #8fe6b0; box-shadow: 0 0 8px rgba(143, 230, 176, 0.8); }
+        .abox-tag {
+            margin-top: 12px;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(143, 230, 176, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .fuse-arrow { transform: rotate(90deg); }
+            .fusion { gap: 12px; }
+        }
+
+        /* One-time assembly on scroll-into-view: fragments slide in and settle, seams
+           stamp on, arrow + unified box resolve last. Default (no .anim) is the final
+           diagram, so no-JS and reduced-motion always see it whole. */
+        @media (prefers-reduced-motion: no-preference) {
+            .fusion.anim .fbox,
+            .fusion.anim .seam,
+            .fusion.anim .before-tag,
+            .fusion.anim .fuse,
+            .fusion.anim .after {
+                opacity: 0;
+                transition: opacity 0.5s ease, transform 0.5s ease;
+            }
+            .fusion.anim .fbox  { transform: translateX(-18px); }
+            .fusion.anim .after { transform: translateX(18px); }
+            .fusion.anim .fuse  { transform: scale(0.82); }
+
+            .fusion.anim.play .fbox,
+            .fusion.anim.play .seam,
+            .fusion.anim.play .before-tag,
+            .fusion.anim.play .fuse,
+            .fusion.anim.play .after { opacity: 1; transform: none; }
+
+            /* Children of .before are all divs, so stagger by position, not type. */
+            .fusion.anim.play .before > :nth-child(1) { transition-delay: 0.00s; }  /* database */
+            .fusion.anim.play .before > :nth-child(3) { transition-delay: 0.12s; }  /* queue */
+            .fusion.anim.play .before > :nth-child(5) { transition-delay: 0.24s; }  /* serializer */
+            .fusion.anim.play .before > :nth-child(2) { transition-delay: 0.32s; }  /* seam 1 */
+            .fusion.anim.play .before > :nth-child(4) { transition-delay: 0.38s; }  /* seam 2 */
+            .fusion.anim.play .before > :nth-child(6) { transition-delay: 0.46s; }  /* before-tag */
+            .fusion.anim.play .fuse  { transition-delay: 0.54s; }
+            .fusion.anim.play .after { transition-delay: 0.66s; }
+        }
+
         .section-label {
             color: rgba(200, 210, 230, 0.85);
             font-size: 0.85rem;
@@ -133,6 +269,82 @@
             padding: 2px 8px;
         }
 
+        /* ── Demo-card mini-previews: tiny looping animations that evoke each live demo.
+           Pure CSS/SVG, no image/video assets, paused for reduced-motion. Sits atop a card. */
+        .demo-prev {
+            position: relative;
+            height: 74px;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            background: #05060a;
+            border: 1px solid rgba(106, 168, 254, 0.14);
+            overflow: hidden;
+        }
+        a.card:hover .demo-prev { border-color: rgba(106, 168, 254, 0.32); }
+
+        /* Market Wall — an equaliser of ingest bars pulsing. */
+        .prev-wall { display: flex; align-items: flex-end; gap: 3px; padding: 9px 10px; }
+        .prev-wall i {
+            flex: 1; height: 100%; border-radius: 2px 2px 0 0; transform-origin: bottom; transform: scaleY(.25);
+            background: linear-gradient(180deg, rgba(106, 168, 254, 0.95), rgba(106, 168, 254, 0.2));
+            animation: wallBar 1.15s ease-in-out infinite;
+        }
+        @keyframes wallBar { 0%, 100% { transform: scaleY(.22); } 50% { transform: scaleY(1); } }
+
+        /* F1 Replay — a car lapping the circuit (SMIL animateMotion, scales with the viewBox). */
+        .prev-f1 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+        /* Replication / Relay failover — one unbroken rising line drawn through a KILL marker. */
+        .prev-fail svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .prev-fail .ln {
+            fill: none; stroke: #6ea8fe; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 100; stroke-dashoffset: 100; filter: drop-shadow(0 0 4px rgba(106, 168, 254, 0.6));
+            animation: failDraw 3.4s ease-in-out infinite;
+        }
+        @keyframes failDraw { 0% { stroke-dashoffset: 100; } 72%, 100% { stroke-dashoffset: 0; } }
+        .prev-fail .fail-kill {
+            position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+            font-size: 0.5rem; letter-spacing: 1px; color: rgba(255, 123, 136, 0.9);
+            background: rgba(5, 6, 10, 0.7); padding: 0 3px; border-radius: 2px;
+        }
+
+        /* Benchmarks — latency bars breathing toward their medians. */
+        .prev-bench { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 12px; }
+        .prev-bench i {
+            height: 7px; border-radius: 4px; box-shadow: 0 0 8px rgba(106, 168, 254, 0.22);
+            background: linear-gradient(90deg, rgba(106, 168, 254, 0.85), rgba(106, 168, 254, 0.25));
+            animation: benchFill 2.4s ease-in-out infinite alternate;
+        }
+        @keyframes benchFill { from { width: 24%; } to { width: 92%; } }
+
+        /* Log Viewer — log lines streaming past a fixed window. */
+        .prev-log .rows {
+            position: absolute; left: 10px; right: 10px; top: 8px;
+            display: flex; flex-direction: column; gap: 6px; animation: logScroll 3.4s linear infinite;
+        }
+        .prev-log .rows i { height: 5px; border-radius: 3px; background: rgba(150, 185, 235, 0.35); }
+        @keyframes logScroll { to { transform: translateY(-50%); } }
+
+        /* Raspberry Pi — a tiny SoC with a heartbeat ping. */
+        .prev-pi { display: flex; align-items: center; justify-content: center; }
+        .prev-pi .soc {
+            position: relative; width: 34px; height: 34px; border-radius: 5px;
+            background: #0e1730; border: 1px solid rgba(106, 168, 254, 0.5); box-shadow: 0 0 12px rgba(106, 168, 254, 0.25);
+        }
+        .prev-pi .soc::after { content: ""; position: absolute; inset: 9px; border-radius: 3px; background: rgba(106, 168, 254, 0.28); }
+        .prev-pi .ping {
+            position: absolute; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(143, 230, 176, 0.8);
+            animation: piPing 1.9s ease-out infinite;
+        }
+        @keyframes piPing { 0% { transform: scale(.7); opacity: .8; } 100% { transform: scale(2.1); opacity: 0; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .demo-prev i, .demo-prev .ln, .demo-prev .rows, .demo-prev .ping { animation: none !important; }
+            .prev-wall i { transform: scaleY(.6); }
+            .prev-bench i { width: 70%; }
+            .prev-fail .ln { stroke-dashoffset: 0; }
+        }
+
         .foot {
             margin-top: 56px;
             color: rgba(190, 200, 222, 0.75);
@@ -165,6 +377,62 @@
         <p class="lede"><strong>Drylane is all three, fused into one stack that runs on a single
             box</strong> &mdash; ingesting <strong>tens of millions of records a second</strong> and answering
             queries in <strong>microseconds</strong>. No cluster required to be fast.</p>
+
+        <div class="fusion" aria-label="Three separate systems — a database, a message queue and a serializer, with a copy, a serialize and a hop at every seam — fused into one Drylane process">
+            <div class="before">
+                <div class="fbox">
+                    <span class="fbox-k">Database</span>
+                    <span class="fbox-s">store the data</span>
+                </div>
+                <div class="seam"><span>copy</span><span>serialize</span><span>hop</span></div>
+                <div class="fbox">
+                    <span class="fbox-k">Message Queue</span>
+                    <span class="fbox-s">move the data</span>
+                </div>
+                <div class="seam"><span>copy</span><span>serialize</span><span>hop</span></div>
+                <div class="fbox">
+                    <span class="fbox-k">Serializer</span>
+                    <span class="fbox-s">pack the data</span>
+                </div>
+                <div class="before-tag">three systems &middot; glue at every seam</div>
+            </div>
+
+            <div class="fuse">
+                <div class="fuse-arrow">&rarr;</div>
+                <div class="fuse-word">fused</div>
+            </div>
+
+            <div class="after">
+                <div class="abox">
+                    <div class="abox-name">DRYLANE</div>
+                    <div class="abox-row"><span class="dot"></span>store</div>
+                    <div class="abox-row"><span class="dot"></span>stream</div>
+                    <div class="abox-row"><span class="dot"></span>serialize</div>
+                    <div class="abox-tag">one process &middot; zero copies &middot; no hops</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Arm the assembly animation synchronously (before paint, so no flash), then
+            // release it once the diagram scrolls into view. Skipped entirely for
+            // reduced-motion — the diagram just stays in its final state.
+            (() => {
+                const fusion = document.currentScript.previousElementSibling;
+                if (!fusion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                fusion.classList.add('anim');
+                let played = false;
+                const play = () => { if (played) return; played = true; fusion.classList.add('play'); };
+                if ('IntersectionObserver' in window) {
+                    const io = new IntersectionObserver((entries) => {
+                        if (entries[0].isIntersecting) { play(); io.disconnect(); }
+                    }, { threshold: 0.25 });
+                    io.observe(fusion);
+                }
+                // Safety net: never leave the diagram hidden if the observer never fires.
+                setTimeout(play, 1200);
+            })();
+        </script>
+
         <p class="sub">Runs on <strong>Windows</strong> and <strong>Linux</strong>, tuned down to the
             SIMD for <strong>Intel</strong>, <strong>AMD</strong> and <strong>ARM</strong> &mdash; the
             same engine from a server rack to a Raspberry&nbsp;Pi.</p>
@@ -215,24 +483,28 @@
         <div class="section-label">See it live</div>
         <div class="grid">
             <a class="card" href="https://api.drylane.io">
+                <div class="demo-prev prev-bench" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-1.6s"></i></div>
                 <div class="tag">live demo</div>
                 <div class="name">Benchmarks</div>
                 <div class="what">The full query benchmark suite, run live on the box &mdash; every API
                     surface with its median and p99 latency, straight from the engine.</div>
             </a>
             <a class="card" href="https://live.drylane.io">
+                <div class="demo-prev prev-wall" aria-hidden="true"><i style="animation-delay:-.05s"></i><i style="animation-delay:-.5s"></i><i style="animation-delay:-.9s"></i><i style="animation-delay:-.2s"></i><i style="animation-delay:-.7s"></i><i style="animation-delay:-1.05s"></i><i style="animation-delay:-.35s"></i><i style="animation-delay:-.6s"></i><i style="animation-delay:-.15s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-.45s"></i><i style="animation-delay:-.95s"></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.65s"></i></div>
                 <div class="tag">live demo</div>
                 <div class="name">Market Wall</div>
                 <div class="what">A live command-center wall ingesting synthetic market data, with
                     queries running continuously against the stream.</div>
             </a>
             <a class="card" href="https://f1.drylane.io">
+                <div class="demo-prev prev-f1" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="xMidYMid meet"><ellipse cx="100" cy="37" rx="62" ry="20" fill="none" stroke="rgba(106,168,254,.35)" stroke-width="2" stroke-dasharray="4 5"/><circle r="4" fill="#8fe6b0"><animateMotion dur="2.6s" repeatCount="indefinite" path="M 38 37 A 62 20 0 1 1 162 37 A 62 20 0 1 1 38 37"/></circle></svg></div>
                 <div class="tag">live demo</div>
                 <div class="name">F1 Replay</div>
                 <div class="what">A real Formula 1 race ingested once, then replayed and queried
                     &mdash; point-in-time and whole-race aggregates in microseconds.</div>
             </a>
             <a class="card" href="https://chaos.drylane.io">
+                <div class="demo-prev prev-fail" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="none"><line x1="100" y1="6" x2="100" y2="68" stroke="rgba(255,123,136,.5)" stroke-width="1.5" stroke-dasharray="3 3"/><path class="ln" pathLength="100" d="M 6 64 L 42 55 L 72 51 L 100 41 L 130 31 L 166 19 L 194 10"/></svg><span class="fail-kill">KILL</span></div>
                 <div class="tag">live demo</div>
                 <div class="name">Replication &amp; Failover</div>
                 <div class="what">A two-node cluster you can break on purpose: cut the link, force a
@@ -241,6 +513,7 @@
                     can't win an election, so two leaders can never exist.</div>
             </a>
             <a class="card" href="https://relay.drylane.io">
+                <div class="demo-prev prev-fail" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="none"><line x1="100" y1="6" x2="100" y2="68" stroke="rgba(255,123,136,.5)" stroke-width="1.5" stroke-dasharray="3 3"/><path class="ln" pathLength="100" d="M 6 64 L 42 55 L 72 51 L 100 41 L 130 31 L 166 19 L 194 10"/></svg><span class="fail-kill">KILL</span></div>
                 <div class="tag">live demo</div>
                 <div class="name">Relay rides a failover</div>
                 <div class="what">Kill the leader and watch a messaging consumer keep delivering &mdash;
@@ -249,12 +522,14 @@
                     from the storage layer &mdash; the consumer never notices.</div>
             </a>
             <a class="card" href="https://log.drylane.io">
+                <div class="demo-prev prev-log" aria-hidden="true"><div class="rows"><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i></div></div>
                 <div class="tag">live demo</div>
                 <div class="name">Log Viewer</div>
                 <div class="what">A virtualized browser over a huge live log &mdash; only the visible
                     window is read, including the unsealed tail.</div>
             </a>
             <a class="card" href="https://pi.drylane.io">
+                <div class="demo-prev prev-pi" aria-hidden="true"><span class="ping"></span><span class="soc"></span></div>
                 <div class="tag">live demo</div>
                 <div class="name">Raspberry Pi</div>
                 <div class="what">The same engine on a $35 ARM board &mdash; the stack is small enough
