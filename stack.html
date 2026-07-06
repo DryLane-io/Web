@@ -81,7 +81,7 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 22px;
-            margin: 34px 0 12px;
+            margin: 34px 0 40px;
         }
         .fusion .before, .fusion .after { flex: 1 1 300px; max-width: 400px; }
 
@@ -170,8 +170,11 @@
         }
 
         @media (max-width: 768px) {
+            /* Stack cleanly: three boxes → down-arrow → unified box. Reset the row-mode
+               flex basis (which would otherwise apply to height in a column). */
+            .fusion { flex-direction: column; align-items: stretch; gap: 14px; }
+            .fusion .before, .fusion .after { flex: none; width: 100%; max-width: none; }
             .fuse-arrow { transform: rotate(90deg); }
-            .fusion { gap: 12px; }
         }
 
         /* One-time assembly on scroll-into-view: fragments slide in and settle, seams
