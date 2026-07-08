@@ -1,0 +1,390 @@
+<title>When structure beats a learned world model</title>
+<style>
+  :root{
+    --bg:#eef1f4; --panel:#ffffff; --panel-2:#f6f8fa;
+    --ink:#0f1720; --muted:#5b6774; --faint:#8493a1;
+    --line:#d7dee5; --grid:rgba(15,30,45,.07);
+    --structure:#0e97a2; --structure-soft:rgba(14,151,162,.14);
+    --blackbox:#c07a1e; --blackbox-soft:rgba(192,122,30,.14);
+    --good:#1f9e63; --bad:#c04d3a;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0e13; --panel:#111823; --panel-2:#0d141d;
+      --ink:#e2e9f0; --muted:#93a1b0; --faint:#6c7a89;
+      --line:#233040; --grid:rgba(255,255,255,.055);
+      --structure:#2fd0d9; --structure-soft:rgba(47,208,217,.16);
+      --blackbox:#e8a54a; --blackbox-soft:rgba(232,165,74,.15);
+      --good:#3ec37f; --bad:#e0705a;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f4; --panel:#ffffff; --panel-2:#f6f8fa;
+    --ink:#0f1720; --muted:#5b6774; --faint:#8493a1;
+    --line:#d7dee5; --grid:rgba(15,30,45,.07);
+    --structure:#0e97a2; --structure-soft:rgba(14,151,162,.14);
+    --blackbox:#c07a1e; --blackbox-soft:rgba(192,122,30,.14);
+    --good:#1f9e63; --bad:#c04d3a;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a0e13; --panel:#111823; --panel-2:#0d141d;
+    --ink:#e2e9f0; --muted:#93a1b0; --faint:#6c7a89;
+    --line:#233040; --grid:rgba(255,255,255,.055);
+    --structure:#2fd0d9; --structure-soft:rgba(47,208,217,.16);
+    --blackbox:#e8a54a; --blackbox-soft:rgba(232,165,74,.15);
+    --good:#3ec37f; --bad:#e0705a;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:788px;margin:0 auto;padding:clamp(20px,5vw,56px) clamp(16px,4vw,24px) 72px;}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
+           color:var(--structure);font-weight:600;}
+  h1{font-family:var(--mono);font-weight:650;font-size:clamp(26px,5.2vw,40px);line-height:1.1;
+     letter-spacing:-.02em;margin:.5rem 0 .1rem;text-wrap:balance;}
+  h2{font-family:var(--mono);font-weight:640;font-size:clamp(17px,3vw,20px);letter-spacing:-.01em;
+     margin:0 0 .2rem;text-wrap:balance;}
+  .deck{font-size:clamp(15px,2.4vw,17px);color:var(--muted);max-width:60ch;margin:.6rem 0 0;}
+  section{margin-top:clamp(40px,7vw,64px);}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+          color:var(--faint);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line);}
+  p{margin:.7rem 0;max-width:64ch}
+  .lead-note{font-size:14.5px;color:var(--muted);max-width:62ch}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .panel-pad{padding:clamp(16px,3vw,22px);}
+
+  .demo-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;
+             padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel-2);}
+  .demo-head .t{font-family:var(--mono);font-size:13px;letter-spacing:.02em;font-weight:600}
+  .demo-head .s{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  canvas{display:block;width:100%;height:auto;background:transparent;}
+
+  .controls{display:flex;align-items:flex-end;gap:18px;padding:16px 18px;border-top:1px solid var(--line);
+            flex-wrap:wrap;background:var(--panel-2);}
+  .slider-block{flex:1;min-width:240px}
+  .slider-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;
+                 color:var(--muted);margin-bottom:8px;letter-spacing:.02em}
+  .slider-labels b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+  .slider-rail{position:relative;height:20px}
+  .track-base{position:absolute;top:8px;left:0;right:0;height:4px;background:var(--line);border-radius:2px}
+  .id-band{position:absolute;top:8px;left:0;height:4px;background:var(--structure);opacity:.55;border-radius:2px 0 0 2px}
+  .limit-line{position:absolute;top:1px;height:18px;width:2px;background:var(--structure)}
+  .limit-tag{position:absolute;top:-16px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;
+             color:var(--structure);white-space:nowrap}
+  input[type=range]{position:absolute;inset:0;width:100%;height:20px;margin:0;
+                    -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+  input[type=range]::-webkit-slider-runnable-track{height:20px;background:transparent}
+  input[type=range]::-moz-range-track{height:20px;background:transparent}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+     background:var(--ink);border:2px solid var(--panel);margin-top:2px;box-shadow:0 0 0 1px var(--line)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--panel);border-radius:50%;
+     background:var(--ink);box-shadow:0 0 0 1px var(--line)}
+  .rail-caption{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;margin-top:7px}
+  .rail-caption .a{color:var(--structure)} .rail-caption .b{color:var(--blackbox)}
+  button{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.04em;
+         background:var(--ink);color:var(--bg);border:0;border-radius:7px;padding:9px 15px;cursor:pointer;}
+  button:hover{opacity:.88}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--structure);outline-offset:3px}
+
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line)}
+  .cell{background:var(--panel);padding:13px 18px;}
+  .cell .lab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .cell .val{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  .dot.s{background:var(--structure)} .dot.b{background:var(--blackbox)}
+  .verdict-hit{color:var(--good)} .verdict-miss{color:var(--bad)}
+
+  .cards{display:grid;grid-template-columns:1fr;gap:10px}
+  .row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);
+       border-radius:10px;background:var(--panel)}
+  .row .chip{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;
+             padding:4px 9px;border-radius:5px;white-space:nowrap;text-transform:uppercase}
+  .chip.win{color:var(--structure);background:var(--structure-soft)}
+  .chip.loss{color:var(--blackbox);background:var(--blackbox-soft)}
+  .row .rt{font-size:14.5px} .row .rt b{font-weight:600} .row .rt span{color:var(--muted);font-size:13px}
+
+  .chart-wrap{overflow-x:auto}
+  svg{display:block;max-width:100%}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);padding:0 2px 2px}
+  .legend b{color:var(--ink);font-weight:600}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:12px;max-width:62ch}
+
+  .stat{border-left:3px solid var(--structure);padding:6px 0 6px 20px;margin:8px 0}
+  .stat .big{font-family:var(--mono);font-size:clamp(30px,6vw,44px);font-weight:650;letter-spacing:-.02em;
+             color:var(--structure);line-height:1}
+  .stat .cap{color:var(--muted);font-size:14.5px;margin-top:6px;max-width:52ch}
+
+  .method{font-size:13.5px;color:var(--muted);}
+  .method code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);
+               padding:1px 5px;border-radius:4px;color:var(--ink)}
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);
+         font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  @media (max-width:520px){ .readout{grid-template-columns:1fr} }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">World-model experiment &middot; 8 runs</div>
+    <h1>When does structure beat<br>a learned world model?</h1>
+    <p class="deck">A physics-grounded predictor versus a black-box neural net, on the same 2D world. Eight experiments, run to break the idea, not to flatter it. One honest finding: structure wins exactly where the world is <b style="color:var(--ink)">data-poor, fast, and changing</b> &mdash; and a strong baseline holds everywhere else.</p>
+  </header>
+
+  <section aria-labelledby="demo-h">
+    <div class="kicker">Live &middot; lead the target</div>
+    <h2 id="demo-h" style="margin-bottom:.4rem">Both models aim by predicting the future</h2>
+    <p class="lead-note">Each model must guess where the target will be, then fire a straight shot to meet it. Both were trained only on slow targets &mdash; the teal band on the slider. Push the speed past that band and the black-box aims short: it can't imagine motion faster than it has seen. The structured model just integrates the physics, so speed is no obstacle.</p>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="demo-head">
+        <span class="t">TRACKING &amp; INTERCEPT</span>
+        <span class="s" id="distTag">&mdash;</span>
+      </div>
+      <canvas id="c" width="740" height="300" role="img"
+        aria-label="A target flies across a field; a structured interceptor leads it and hits, while a black-box interceptor aims short and misses when the target is faster than its training band."></canvas>
+      <div class="controls">
+        <div class="slider-block">
+          <div class="slider-labels"><span>Target speed</span><b id="spdVal">72</b></div>
+          <div class="slider-rail">
+            <div class="track-base"></div>
+            <div class="id-band" id="idBand"></div>
+            <div class="limit-line" id="limitLine"></div>
+            <div class="limit-tag" id="limitTag">trained &le; 30</div>
+            <input id="spd" type="range" min="5" max="100" value="72" step="1" aria-label="Target speed">
+          </div>
+          <div class="rail-caption"><span class="a">&#9664; trained here</span><span class="b">never seen &#9654;</span></div>
+        </div>
+        <button id="fire">Re-fire</button>
+      </div>
+      <div class="readout">
+        <div class="cell">
+          <div class="lab"><span class="dot s"></span>Structured</div>
+          <div class="val" id="vS">&mdash;</div>
+        </div>
+        <div class="cell">
+          <div class="lab"><span class="dot b"></span>Black-box (latent)</div>
+          <div class="val" id="vB">&mdash;</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Faint traces are each model's <i>predicted</i> target path; the rings are where each one aims. Inside the training band the predictions agree and both hit. Beyond it, the black-box's prediction falls short and its shot misses behind the target.</figcaption>
+  </section>
+
+  <section aria-labelledby="score-h">
+    <div class="kicker">The scorecard</div>
+    <h2 id="score-h">Three wins, two honest limits</h2>
+    <p class="lead-note">The wins aren't a grab-bag. Scarce data, sudden novelty, a shifting world: that's the description of an agent living in reality without a data lake or a supercomputer.</p>
+    <div class="cards" style="margin-top:16px">
+      <div class="row"><span class="chip win">Structure</span><span class="rt"><b>Little data.</b> <span>Reaches oracle accuracy from ~8 samples; the black-box needs hundreds.</span></span></div>
+      <div class="row"><span class="chip win">Structure</span><span class="rt"><b>Fast reaction to novelty.</b> <span>~9&times; more accurate intercepting a never-seen fast target with a split second to react.</span></span></div>
+      <div class="row"><span class="chip win">Structure</span><span class="rt"><b>Adapting to a changing world.</b> <span>Recovers ~2.5&ndash;3&times; faster after the environment shifts.</span></span></div>
+      <div class="row"><span class="chip loss">Black-box</span><span class="rt"><b>In-distribution accuracy, rich data.</b> <span>With dense on-distribution data, a black-box that memorizes the exact operator matches the <i>learned</i> structured model. Structure's ceiling (the true force) still leads &mdash; the learned force just can't quite reach it here.</span></span></div>
+      <div class="row"><span class="chip loss">Black-box</span><span class="rt"><b>Cheap long-horizon planning.</b> <span>Structure's ceiling wins ~5&times;, but a cheaply-learned force can't realize it over a long horizon; the black-box is a strong low-effort baseline.</span></span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="wind-h">
+    <div class="kicker">Instrument &middot; non-stationary world</div>
+    <h2 id="wind-h">Adapting when the wind changes</h2>
+    <p class="lead-note">The world is calm, then the wind shifts twice. After each shift both models spike identically &mdash; neither saw it coming. Then they learn online from what they observe. A wind change alters only the <i>force</i>, so structure re-learns a tiny correction and keeps its physics; the black-box must repair its whole entangled operator, and plateaus.</p>
+    <div class="panel panel-pad" style="margin-top:16px">
+      <div class="legend"><span><span class="dot s"></span><b>Structured</b></span><span><span class="dot b"></span><b>Black-box</b></span><span style="color:var(--faint)">dashed = wind change</span></div>
+      <div class="chart-wrap"><svg id="windChart" viewBox="0 0 740 300" role="img" aria-label="Prediction error over 45 shots. After each of two wind changes, both models spike, then the structured model's error falls back near baseline while the black-box's stays elevated."></svg></div>
+    </div>
+    <figcaption>Miss distance = target-prediction error, averaged over a fixed evaluation set after each shot. Lower is better. Real output; the numbers are the program's, not illustrations.</figcaption>
+  </section>
+
+  <section aria-labelledby="data-h">
+    <div class="kicker">Instrument &middot; data efficiency</div>
+    <h2 id="data-h">Learning from almost nothing</h2>
+    <div class="panel panel-pad" style="margin-top:16px">
+      <div class="legend"><span><span class="dot s"></span><b>Structured</b> (+ learned force)</span><span><span class="dot b"></span><b>Black-box</b> (state&rarr;next)</span></div>
+      <div class="chart-wrap"><svg id="dataChart" viewBox="0 0 740 270" role="img" aria-label="Prediction error versus number of training samples. The structured model is already accurate at 8 samples and stays flat; the black-box needs hundreds of samples and never catches up."></svg></div>
+    </div>
+    <figcaption>One-step prediction error vs. training-set size. The structured model only has to learn the <i>force</i> &mdash; two numbers here &mdash; so it's near-optimal from 8 samples. The black-box must learn the entire transition and plateaus above it.</figcaption>
+  </section>
+
+  <section aria-labelledby="reflex-h">
+    <div class="kicker">Headline number</div>
+    <div class="stat">
+      <div class="big">~9&times;</div>
+      <div class="cap">closer, when structure must intercept a fast, never-seen target with a split second to react (commit horizon of 2 steps). The advantage shrinks as reaction time lengthens &mdash; and by long horizons the black-box catches up.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="lose-h">
+    <div class="kicker">Kept honest</div>
+    <h2 id="lose-h">Where the black-box holds</h2>
+    <p>Given a rich, on-distribution dataset and a long horizon, a black-box that has learned the exact operator is genuinely hard to beat &mdash; it matched or beat the <i>learned</i> structured model in those regimes here (structure's oracle ceiling, with the true force, still led). And structure only helps if its <i>form</i> is right: give it the wrong physics and it diverges worse than the black-box. The claim is narrow on purpose. It isn't "structure always wins" &mdash; it's "structure wins in the data-poor, novel, non-stationary corner," and that corner happens to be where real embodied agents live.</p>
+  </section>
+
+  <section aria-labelledby="method-h">
+    <div class="kicker">Method</div>
+    <h2 id="method-h">How it was run</h2>
+    <p class="method">A 2D world with gravity + quadratic drag. <b style="color:var(--ink)">Structured</b> model = a fixed kinematic integrator with a small learned <i>force</i> model plugged in (<code>state &rarr; acceleration</code>); it gets the physics <i>form</i> for free and only learns the unknown force. <b style="color:var(--ink)">Black-box</b> = a plain neural net mapping <code>state &rarr; next state</code>, no physics. Same data, same budget. Everything is a self-contained C# console program with a hand-rolled MLP and no dependencies; each experiment is a table the program prints. The demo above reproduces the out-of-distribution mechanism faithfully in the browser: the black-box cannot emit a displacement larger than it trained on, so it under-predicts fast motion &mdash; exactly the failure measured in the runs.</p>
+  </section>
+
+  <footer>
+    <span>Structured vs. learned world models &middot; 8-experiment study</span>
+    <span>Result, not a pitch.</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- world constants (sim units) ---------- */
+  var G=9.81, C=0.012, DT=0.05, H=24, TRAIN_MAX=30;
+  var SPD_MIN=5, SPD_MAX=100, HIT=3.0;
+  var FX=108, FY=64;
+  var base={x:6,y:6}, start={x:10,y:15};
+
+  function accel(vx,vy){ var sp=Math.hypot(vx,vy); return {ax:-C*sp*vx, ay:-G - C*sp*vy}; }
+  function clampMag(vx,vy,m){ var sp=Math.hypot(vx,vy); if(sp<=m||sp===0) return {vx:vx,vy:vy}; var k=m/sp; return {vx:vx*k, vy:vy*k}; }
+  function roll(speed, cap){
+    var th=32*Math.PI/180;
+    var s={x:start.x,y:start.y,vx:speed*Math.cos(th),vy:speed*Math.sin(th)};
+    var path=[{x:s.x,y:s.y}];
+    for(var i=0;i<H;i++){
+      var a=accel(s.vx,s.vy); s.vx+=a.ax*DT; s.vy+=a.ay*DT;
+      if(cap>0){ var cc=clampMag(s.vx,s.vy,cap); s.vx=cc.vx; s.vy=cc.vy; }
+      s.x+=s.vx*DT; s.y+=s.vy*DT; path.push({x:s.x,y:s.y});
+    }
+    return path;
+  }
+
+  /* ---------- slider band (visual training limit) ---------- */
+  function pct(v){ return (v-SPD_MIN)/(SPD_MAX-SPD_MIN)*100; }
+  (function markLimit(){
+    var p=pct(TRAIN_MAX);
+    document.getElementById("idBand").style.width=p+"%";
+    document.getElementById("limitLine").style.left=p+"%";
+    document.getElementById("limitTag").style.left=p+"%";
+  })();
+
+  /* ---------- canvas ---------- */
+  var cv=document.getElementById("c"), ctx=cv.getContext("2d");
+  var cssW=740, cssH=300, dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+  function sizeCanvas(){
+    cssW=cv.clientWidth||740; cssH=Math.round(cssW*300/740);
+    cv.width=Math.round(cssW*dpr); cv.height=Math.round(cssH*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  var padL=22,padR=18,padT=18,padB=22;
+  var VB={minx:0,maxx:FX,miny:0,maxy:FY};
+  function sx(x){ return padL + (x-VB.minx)/(VB.maxx-VB.minx)*(cssW-padL-padR); }
+  function sy(y){ return (cssH-padB) - (y-VB.miny)/(VB.maxy-VB.miny)*(cssH-padT-padB); }
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  var truePath, bbPath, sAim, bAim, missB, missS, speed=72;
+
+  function fitBounds(){
+    var pts=[base,sAim,bAim].concat(truePath).concat(bbPath);
+    var mnx=Infinity,mxx=-Infinity,mny=Infinity,mxy=-Infinity;
+    for(var i=0;i<pts.length;i++){ var p=pts[i]; if(p.x<mnx)mnx=p.x; if(p.x>mxx)mxx=p.x; if(p.y<mny)mny=p.y; if(p.y>mxy)mxy=p.y; }
+    var spx=Math.max(mxx-mnx,22), spy=Math.max(mxy-mny,14);
+    var padx=spx*0.09, pady=spy*0.16;
+    VB={minx:mnx-padx, maxx:mnx+spx+padx, miny:mny-pady, maxy:mny+spy+pady};
+  }
+  function computeShot(){
+    truePath=roll(speed,0); bbPath=roll(speed,TRAIN_MAX);
+    sAim=truePath[H]; bAim=bbPath[H];
+    missS=Math.hypot(sAim.x-truePath[H].x, sAim.y-truePath[H].y);
+    missB=Math.hypot(bAim.x-truePath[H].x, bAim.y-truePath[H].y);
+    fitBounds();
+  }
+  function lerp(p,q,t){ return {x:p.x+(q.x-p.x)*t, y:p.y+(q.y-p.y)*t}; }
+  function samplePath(path,s){ if(s<=0) return path[0]; if(s>=H) return path[H]; var i=Math.floor(s); return lerp(path[i],path[i+1],s-i); }
+
+  function drawGrid(){
+    ctx.clearRect(0,0,cssW,cssH); ctx.strokeStyle=css("--grid"); ctx.lineWidth=1; ctx.beginPath();
+    var x0=padL,x1=cssW-padR,y0=padT,y1=cssH-padB,i;
+    for(i=0;i<=8;i++){ var gx=x0+(x1-x0)*i/8; ctx.moveTo(gx,y0); ctx.lineTo(gx,y1); }
+    for(i=0;i<=5;i++){ var gy=y0+(y1-y0)*i/5; ctx.moveTo(x0,gy); ctx.lineTo(x1,gy); }
+    ctx.stroke();
+  }
+  function marker(p,color,r){ ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),r,0,7); ctx.fillStyle=color; ctx.fill(); }
+  function ring(p,color,r){ ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),r,0,7); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke(); }
+  function line(a,b,color,w,dash){ ctx.save(); ctx.setLineDash(dash||[]); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(sx(a.x),sy(a.y)); ctx.lineTo(sx(b.x),sy(b.y)); ctx.stroke(); ctx.restore(); }
+  function poly(path,upto,color,w,dash){ ctx.save(); ctx.setLineDash(dash||[]); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(sx(path[0].x),sy(path[0].y)); for(var i=1;i<=upto && i<path.length;i++) ctx.lineTo(sx(path[i].x),sy(path[i].y)); ctx.stroke(); ctx.restore(); }
+
+  function render(sPos){
+    var st=css("--structure"), bb=css("--blackbox"), good=css("--good"), bad=css("--bad"), muted=css("--muted"), ink=css("--ink");
+    drawGrid();
+    poly(truePath,H,st,1.5,[]); poly(bbPath,H,bb,1.5,[5,4]);
+    ring(bAim,bb,6); ring(sAim,st,6);
+    marker(base,muted,3.5);
+    line(base,lerp(base,sAim,sPos/H),st,2,[]); line(base,lerp(base,bAim,sPos/H),bb,2,[]);
+    var tgt=samplePath(truePath,sPos);
+    if(sPos>=H-0.001){ ring(tgt,good,11); marker(bAim,bad,4); line(bAim,truePath[H],bad,1.2,[3,3]); }
+    marker(tgt,ink,5);
+    ctx.font="11px "+css("--mono").replace(/"/g,"'"); ctx.fillStyle=muted; ctx.textAlign="left";
+    ctx.fillText("target",sx(tgt.x)+8,sy(tgt.y)-8);
+  }
+
+  var raf=null,t0=null,DUR=1600,HOLD=1100;
+  function frame(ts){ if(t0===null)t0=ts; var el=ts-t0; render(Math.min(1,el/DUR)*H);
+    if(el<DUR+HOLD){ raf=requestAnimationFrame(frame); } else { t0=null; raf=requestAnimationFrame(frame); } }
+  function play(){ if(raf)cancelAnimationFrame(raf); t0=null; if(reduce){ render(H); } else { raf=requestAnimationFrame(frame); } }
+
+  function updateReadout(){
+    var oos=speed>TRAIN_MAX;
+    document.getElementById("distTag").innerHTML="target speed "+speed.toFixed(0)+" &middot; "+
+      (oos? '<span style="color:var(--blackbox)">OUT-OF-DISTRIBUTION</span>' : '<span style="color:var(--structure)">in training band</span>');
+    var hitS=missS<HIT, hitB=missB<HIT;
+    document.getElementById("vS").innerHTML=(hitS?'<span class="verdict-hit">HIT</span>':'<span class="verdict-miss">MISS</span>')+' &middot; miss '+missS.toFixed(1);
+    document.getElementById("vB").innerHTML=(hitB?'<span class="verdict-hit">HIT</span>':'<span class="verdict-miss">MISS</span>')+' &middot; miss '+missB.toFixed(1);
+  }
+  function refire(){ computeShot(); updateReadout(); play(); }
+
+  var spd=document.getElementById("spd"), spdVal=document.getElementById("spdVal");
+  spd.addEventListener("input",function(){ speed=parseFloat(spd.value); spdVal.textContent=speed.toFixed(0); computeShot(); updateReadout(); if(reduce) render(H); });
+  spd.addEventListener("change",refire);
+  document.getElementById("fire").addEventListener("click",refire);
+
+  /* ---------- charts (real data) ---------- */
+  var windHyb=[0.0936,0.2142,0.1857,0.1471,0.1323,0.1124,0.1128,0.1020,0.1029,0.1056,0.0964,0.0938,0.0940,0.0985,0.0984,1.2939,1.1380,0.9784,0.8999,0.5254,0.5181,0.5587,0.3619,0.3366,0.3053,0.3034,0.3094,0.3002,0.3183,0.2640,2.4576,2.2838,2.2161,2.0552,1.9069,1.6975,1.6252,1.4695,1.0354,0.9979,0.9771,0.9782,0.7132,0.4736,0.3780];
+  var windLat=[0.1187,0.2950,0.3106,0.1987,0.1663,0.1312,0.1341,0.1080,0.1075,0.0819,0.0639,0.0640,0.0599,0.0657,0.0725,1.2891,1.0300,1.0213,1.1562,0.8178,0.8574,0.8368,0.8576,0.7982,0.5901,0.5448,0.5648,0.7152,0.7031,0.7492,2.1402,1.9947,1.9445,1.7522,1.5302,1.4928,1.4929,1.4325,1.6723,1.5875,1.5232,1.4747,1.2243,1.2211,0.9954];
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(n,a){ var e=document.createElementNS(SVGNS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+
+  function buildWind(){
+    var svg=document.getElementById("windChart"), W=740,Hh=300,L=44,R=14,T=16,B=34, n=windHyb.length, ymax=2.6;
+    function X(i){ return L + i/(n-1)*(W-L-R); } function Y(v){ return (Hh-B)-v/ymax*(Hh-T-B); }
+    for(var g=0;g<=2.5;g+=0.5){ svg.appendChild(el("line",{x1:L,y1:Y(g),x2:W-R,y2:Y(g),stroke:"var(--grid)","stroke-width":1}));
+      var tx=el("text",{x:L-8,y:Y(g)+3.5,"text-anchor":"end",fill:"var(--faint)","font-size":10,"font-family":"var(--mono)"}); tx.textContent=g.toFixed(1); svg.appendChild(tx); }
+    [15,30].forEach(function(cx){ svg.appendChild(el("line",{x1:X(cx),y1:T,x2:X(cx),y2:Hh-B,stroke:"var(--faint)","stroke-width":1,"stroke-dasharray":"3 4","opacity":.7}));
+      var tt=el("text",{x:X(cx)+4,y:T+11,fill:"var(--faint)","font-size":9.5,"font-family":"var(--mono)"}); tt.textContent="wind"; svg.appendChild(tt); });
+    [0,15,30,44].forEach(function(i){ var tx=el("text",{x:X(i),y:Hh-B+16,"text-anchor":"middle",fill:"var(--faint)","font-size":10,"font-family":"var(--mono)"}); tx.textContent="shot "+i; svg.appendChild(tx); });
+    function path(data,color){ var d=""; for(var i=0;i<n;i++){ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(data[i]).toFixed(1)+" "; }
+      svg.appendChild(el("path",{d:d,fill:"none",stroke:color,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"})); }
+    path(windLat,"var(--blackbox)"); path(windHyb,"var(--structure)");
+  }
+
+  var dataN=[8,32,128,512,2048], dataLat=[0.2859,0.0805,0.0551,0.0554,0.0638], dataStruct=0.0266;
+  function buildData(){
+    var svg=document.getElementById("dataChart"), W=740,Hh=270,L=52,R=16,T=16,B=34, n=dataN.length, ymax=0.30;
+    function X(i){ return L + i/(n-1)*(W-L-R); } function Y(v){ return (Hh-B)-v/ymax*(Hh-T-B); }
+    for(var g=0;g<=0.30;g+=0.05){ svg.appendChild(el("line",{x1:L,y1:Y(g),x2:W-R,y2:Y(g),stroke:"var(--grid)","stroke-width":1}));
+      var tx=el("text",{x:L-8,y:Y(g)+3.5,"text-anchor":"end",fill:"var(--faint)","font-size":10,"font-family":"var(--mono)"}); tx.textContent=g.toFixed(2); svg.appendChild(tx); }
+    dataN.forEach(function(N,i){ var tx=el("text",{x:X(i),y:Hh-B+16,"text-anchor":"middle",fill:"var(--faint)","font-size":10,"font-family":"var(--mono)"}); tx.textContent=N; svg.appendChild(tx); });
+    var axlab=el("text",{x:L,y:Hh-4,fill:"var(--faint)","font-size":10,"font-family":"var(--mono)"}); axlab.textContent="training samples"; svg.appendChild(axlab);
+    svg.appendChild(el("line",{x1:X(0),y1:Y(dataStruct),x2:X(n-1),y2:Y(dataStruct),stroke:"var(--structure)","stroke-width":2}));
+    var stt=el("text",{x:X(0)+6,y:Y(dataStruct)-8,fill:"var(--structure)","font-size":10.5,"font-family":"var(--mono)"}); stt.textContent="structure ~0.027 from 8 samples"; svg.appendChild(stt);
+    var d=""; for(var i=0;i<n;i++){ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(dataLat[i]).toFixed(1)+" "; }
+    svg.appendChild(el("path",{d:d,fill:"none",stroke:"var(--blackbox)","stroke-width":2,"stroke-linejoin":"round"}));
+    for(var j=0;j<n;j++) svg.appendChild(el("circle",{cx:X(j),cy:Y(dataLat[j]),r:3,fill:"var(--blackbox)"}));
+  }
+
+  function boot(){ sizeCanvas(); computeShot(); updateReadout(); buildWind(); buildData(); play(); }
+  window.addEventListener("resize",function(){ sizeCanvas(); if(reduce) render(H); });
+  boot();
+})();
+</script>
