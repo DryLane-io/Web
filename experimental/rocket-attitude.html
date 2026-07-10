@@ -1,0 +1,241 @@
+<meta charset="utf-8">
+<title>Land it upright, with less data</title>
+<style>
+  :root{
+    --bg:#eef1f4; --panel:#ffffff; --panel-2:#f6f8fa;
+    --ink:#0f1720; --muted:#5b6774; --faint:#8493a1;
+    --line:#d7dee5; --grid:rgba(15,30,45,.07);
+    --structure:#0e97a2; --structure-soft:rgba(14,151,162,.14);
+    --blackbox:#c07a1e; --blackbox-soft:rgba(192,122,30,.14);
+    --good:#1f9e63; --bad:#c04d3a; --bad-soft:rgba(192,77,58,.12);
+    --ground:rgba(15,30,45,.10); --flame:#e8663a;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0e13; --panel:#111823; --panel-2:#0d141d;
+      --ink:#e2e9f0; --muted:#93a1b0; --faint:#6c7a89;
+      --line:#233040; --grid:rgba(255,255,255,.055);
+      --structure:#2fd0d9; --structure-soft:rgba(47,208,217,.16);
+      --blackbox:#e8a54a; --blackbox-soft:rgba(232,165,74,.15);
+      --good:#3ec37f; --bad:#e0705a; --bad-soft:rgba(224,112,90,.14);
+      --ground:rgba(255,255,255,.08); --flame:#ff7a45;
+    }
+  }
+  :root[data-theme="light"]{ --bg:#eef1f4; --panel:#ffffff; --panel-2:#f6f8fa; --ink:#0f1720; --muted:#5b6774; --faint:#8493a1; --line:#d7dee5; --grid:rgba(15,30,45,.07); --structure:#0e97a2; --structure-soft:rgba(14,151,162,.14); --blackbox:#c07a1e; --blackbox-soft:rgba(192,122,30,.14); --good:#1f9e63; --bad:#c04d3a; --bad-soft:rgba(192,77,58,.12); --ground:rgba(15,30,45,.10); --flame:#e8663a; }
+  :root[data-theme="dark"]{ --bg:#0a0e13; --panel:#111823; --panel-2:#0d141d; --ink:#e2e9f0; --muted:#93a1b0; --faint:#6c7a89; --line:#233040; --grid:rgba(255,255,255,.055); --structure:#2fd0d9; --structure-soft:rgba(47,208,217,.16); --blackbox:#e8a54a; --blackbox-soft:rgba(232,165,74,.15); --good:#3ec37f; --bad:#e0705a; --bad-soft:rgba(224,112,90,.14); --ground:rgba(255,255,255,.08); --flame:#ff7a45; }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:788px;margin:0 auto;padding:clamp(20px,5vw,56px) clamp(16px,4vw,24px) 72px}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--structure);font-weight:600}
+  h1{font-family:var(--mono);font-weight:650;font-size:clamp(26px,5.2vw,40px);line-height:1.1;letter-spacing:-.02em;margin:.5rem 0 .1rem;text-wrap:balance}
+  h2{font-family:var(--mono);font-weight:640;font-size:clamp(17px,3vw,20px);letter-spacing:-.01em;margin:0 0 .2rem;text-wrap:balance}
+  .deck{font-size:clamp(15px,2.4vw,17px);color:var(--muted);max-width:60ch;margin:.6rem 0 0}
+  section{margin-top:clamp(40px,7vw,64px)}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  p{margin:.7rem 0;max-width:64ch}
+  .lead-note{font-size:14.5px;color:var(--muted);max-width:62ch}
+  b.ink{color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .demo-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .demo-head .t{font-family:var(--mono);font-size:13px;letter-spacing:.02em;font-weight:600}
+  .demo-head .s{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  canvas{display:block;width:100%;height:auto;background:transparent}
+  .controls{display:flex;align-items:flex-end;gap:22px;padding:16px 18px;border-top:1px solid var(--line);flex-wrap:wrap;background:var(--panel-2)}
+  .slider-block{flex:1;min-width:240px}
+  .slider-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:.02em}
+  .slider-labels b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+  .slider-rail{position:relative;height:20px}
+  .track-base{position:absolute;top:8px;left:0;right:0;height:4px;background:var(--line);border-radius:2px}
+  input[type=range]{position:absolute;inset:0;width:100%;height:20px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+  input[type=range]::-webkit-slider-runnable-track{height:20px;background:transparent}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);margin-top:2px;box-shadow:0 0 0 1px var(--line)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--panel);border-radius:50%;background:var(--ink);box-shadow:0 0 0 1px var(--line)}
+  .rail-caption{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;margin-top:7px;color:var(--faint)}
+  button{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.04em;background:var(--ink);color:var(--bg);border:0;border-radius:7px;padding:9px 15px;cursor:pointer}
+  button:hover{opacity:.88}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--structure);outline-offset:3px}
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line)}
+  .cell{background:var(--panel);padding:13px 18px}
+  .cell .lab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .cell .val{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  .dot.s{background:var(--structure)} .dot.b{background:var(--blackbox)}
+  .ok{color:var(--good)} .crash{color:var(--bad)}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:12px;max-width:62ch}
+  .stat{border-left:3px solid var(--structure);padding:6px 0 6px 20px;margin:8px 0}
+  .stat .big{font-family:var(--mono);font-size:clamp(30px,6vw,44px);font-weight:650;letter-spacing:-.02em;color:var(--structure);line-height:1}
+  .stat .cap{color:var(--muted);font-size:14.5px;margin-top:6px;max-width:52ch}
+  .method{font-size:13.5px;color:var(--muted)}
+  .method code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);padding:1px 5px;border-radius:4px;color:var(--ink)}
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  @media (max-width:520px){ .readout{grid-template-columns:1fr} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">World-model demo &middot; predict &rarr; act &middot; attitude</div>
+    <h1>Land it upright,<br>with less data</h1>
+    <p class="deck">This rocket has an <b class="ink">attitude</b>: it can tip over. To move sideways it must tilt, then right itself to touch down vertical &mdash; a genuinely hard, under-actuated control problem. A model-predictive controller flies it, planning thrust <i>and</i> gimbal by simulating the future through a learned world model. Starve the training data and watch the black box tumble while the structured model still sticks the landing.</p>
+  </header>
+
+  <section>
+    <div class="kicker">Live &middot; drag the training data</div>
+    <div class="panel" style="margin-top:6px">
+      <div class="demo-head"><span class="t">POWERED DESCENT &middot; 6 DOF</span><span class="s" id="tag">&mdash;</span></div>
+      <canvas id="c" width="740" height="460" role="img"
+        aria-label="Two rockets descend to a landing pad. Guided by a structured world model, one tilts to steer and rights itself to land upright; guided by a black-box model trained on little data, the other loses attitude control and topples."></canvas>
+      <div class="controls">
+        <div class="slider-block">
+          <div class="slider-labels"><span>Training data (flights)</span><b id="dVal">15</b></div>
+          <div class="slider-rail"><div class="track-base"></div>
+            <input id="data" type="range" min="6" max="400" value="15" step="1" aria-label="Training data amount"></div>
+          <div class="rail-caption"><span>&#9664; almost none</span><span>plenty &#9654;</span></div>
+        </div>
+        <button id="fire">Re-drop</button>
+      </div>
+      <div class="readout">
+        <div class="cell"><div class="lab"><span class="dot s"></span>Structured model</div><div class="val" id="vS">&mdash;</div></div>
+        <div class="cell"><div class="lab"><span class="dot b"></span>Black-box model</div><div class="val" id="vB">&mdash;</div></div>
+      </div>
+    </div>
+    <figcaption>Both rockets use the same controller &mdash; only the world model differs. Landing well means soft, on the pad, <b style="color:var(--ink)">and upright</b>. The structured model needs almost no data to be accurate, so it keeps its balance and lands. The black box, trained on too few flights, mis-predicts how the gimbal rotates it &mdash; so its plan loses control of the tilt and it topples. Drag the data up and it recovers.</figcaption>
+  </section>
+
+  <section>
+    <div class="kicker">The number</div>
+    <div class="stat">
+      <div class="big">100% vs 0%</div>
+      <div class="cap">upright landings from just <b style="color:var(--ink)">10</b> flights of training data, structured vs black-box, in the full study of this 6-DOF rocket. The black box can't act at all that starved; the structured model &mdash; which only has to learn a 2-D force &mdash; is there from the start.</div>
+    </div>
+    <p class="lead-note">Adding attitude makes the state richer and the control harder, but it doesn't change the lesson: a model that learns the physics from a handful of samples is accurate enough to <i>plan through</i>, so you can act. A black box that must learn the whole map &mdash; now including how it rotates &mdash; needs far more before it can be trusted at the controls.</p>
+  </section>
+
+  <section>
+    <div class="kicker">Method</div>
+    <h2>How the demo works</h2>
+    <p class="method">The rocket is a 2-D rigid body: position, velocity, <b class="ink">tilt and spin</b>. You command thrust (along the body) and a gimbal angle that torques it. The controller is real model-predictive control over both. The <b class="ink">structured</b> model is the true rigid-body dynamics with a known actuation model &mdash; its one unknown, the passive aerodynamic force, is learned accurately from almost nothing. The <b class="ink">black box</b> is that physics plus an error &mdash; in thrust and especially in how the gimbal rotates it &mdash; that shrinks as training data grows, standing in for a learned 6-D map that's inaccurate when data is scarce. In the full study both are neural nets; the browser runs the mechanism live.</p>
+  </section>
+
+  <footer><span>Structured vs. learned world models &middot; rigid-body rocket landing</span><span>Result, not a pitch.</span></footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* ---- rigid-body physics: state [x,y,vx,vy,th,w] ---- */
+  var G=9.81, CD=0.005, TMAX=25, PMAX=0.35, MI=2, LG=1.2, DT=0.05, SUB=8;
+  function cT(t){ return t<0?0:(t>TMAX?TMAX:t); } function cP(p){ return p<-PMAX?-PMAX:(p>PMAX?PMAX:p); }
+  function envStep(s,T,phi){ T=cT(T);phi=cP(phi); var x=s[0],y=s[1],vx=s[2],vy=s[3],th=s[4],w=s[5],h=DT/SUB;
+    for(var k=0;k<SUB;k++){ var sp=Math.hypot(vx,vy); var ax=T*Math.sin(th)-CD*sp*vx, ay=T*Math.cos(th)-G-CD*sp*vy; var tq=T*LG*Math.sin(phi); w+=tq/MI*h; th+=w*h; vx+=ax*h; vy+=ay*h; x+=vx*h; y+=vy*h; }
+    return [x,y,vx,vy,th,w]; }
+  // structured model = true coarse dynamics
+  function structStep(s,T,phi){ T=cT(T);phi=cP(phi); var sp=Math.hypot(s[2],s[3]); var ax=T*Math.sin(s[4])-CD*sp*s[2], ay=T*Math.cos(s[4])-G-CD*sp*s[3]; var w=s[5]+T*LG*Math.sin(phi)/MI*DT, th=s[4]+w*DT, vx=s[2]+ax*DT, vy=s[3]+ay*DT; return [s[0]+vx*DT, s[1]+vy*DT, vx, vy, th, w]; }
+  // black-box model = coarse dynamics with data-poor errors: over-optimistic thrust/gravity AND a wrong
+  // gimbal->torque gain, so its plan loses attitude control -> topple.
+  var bbG=1, bbGr=G, bbTq=1;
+  function bbStep(s,T,phi){ T=cT(T);phi=cP(phi); var sp=Math.hypot(s[2],s[3]); var ax=bbG*T*Math.sin(s[4])-CD*sp*s[2], ay=bbG*T*Math.cos(s[4])-bbGr-CD*sp*s[3]; var w=s[5]+bbTq*T*LG*Math.sin(phi)/MI*DT, th=s[4]+w*DT, vx=s[2]+ax*DT, vy=s[3]+ay*DT; return [s[0]+vx*DT, s[1]+vy*DT, vx, vy, th, w]; }
+  // error: ~1 (topple) at little data -> a small RESIDUAL floor even with plenty (a learned model is never
+  // exactly the physics), so the black-box stays distinguishable from the structured one instead of overlapping.
+  function bbErr(d){ var t=Math.max(0,Math.min(1,(d-6)/49)); var sm=t*t*(3-2*t); return 0.1+0.9*(1-sm); }
+
+  /* ---- CEM MPC over (T, phi) ---- */
+  var _rs=1; function srand(s){_rs=(s>>>0)||1;} function ur(){_rs=(_rs+0x6D2B79F5)|0;var x=Math.imul(_rs^_rs>>>15,1|_rs);x=(x+Math.imul(x^x>>>7,61|x))^x;return ((x^x>>>14)>>>0)/4294967296;}
+  function gn(){ var u1=1-ur(),u2=ur(); return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2); }
+  function plan(model, s0){
+    var Hp=26, iters=3, K=70, el=10; var mT=new Float64Array(Hp), mP=new Float64Array(Hp); for(var i=0;i<Hp;i++) mT[i]=G; var sT=TMAX*0.5, sP=PMAX*0.8;
+    var qT=[],qP=[],cost=new Float64Array(K),ord=new Array(K);
+    for(var it=0;it<iters;it++){
+      for(var k=0;k<K;k++){ qT[k]=new Float64Array(Hp); qP[k]=new Float64Array(Hp); var s=s0.slice(); var c=0,landed=false;
+        for(i=0;i<Hp;i++){ var T=mT[i]+gn()*sT, phi=mP[i]+gn()*sP; qT[k][i]=T; qP[k][i]=phi; if(landed) continue;
+          var ns=model(s,T,phi);
+          if(ns[1]<=0.1){ c+=8*(ns[2]*ns[2]+ns[3]*ns[3])+2*ns[0]*ns[0]+25*ns[4]*ns[4]+6*ns[5]*ns[5]; landed=true; }
+          else { var dvy=-Math.max(0.5,Math.min(6,0.5*ns[1])); var dvx=Math.max(-3,Math.min(3,-0.4*ns[0]));
+            c+=(ns[3]-dvy)*(ns[3]-dvy)+0.4*(ns[2]-dvx)*(ns[2]-dvx)+3*ns[4]*ns[4]+1.5*ns[5]*ns[5]+0.05*ns[0]*ns[0]; s=ns; } }
+        if(!landed) c+=6; cost[k]=c; ord[k]=k; }
+      ord.sort(function(a,b){return cost[a]-cost[b];});
+      for(i=0;i<Hp;i++){ var aT=0,aP=0; for(var e=0;e<el;e++){ aT+=qT[ord[e]][i]; aP+=qP[ord[e]][i]; } mT[i]=aT/el; mP[i]=aP/el; }
+      sT*=0.75; sP*=0.75;
+    }
+    return [cT(mT[0]), cP(mP[0])];
+  }
+  function land(model, start){
+    var s=start.slice(), traj=[s.slice()], thr=[[0,0]];
+    for(var t=0;t<300;t++){ var u=plan(model,s); var prev=s; s=envStep(s,u[0],u[1]); traj.push(s.slice()); thr.push(u);
+      if(s[1]<=0.1 && s[1]<prev[1]){ var tilt=Math.abs(s[4])*180/Math.PI; return {traj:traj,thr:thr,speed:Math.hypot(s[2],s[3]),offset:Math.abs(s[0]),tilt:tilt,ok:Math.hypot(s[2],s[3])<2.5&&Math.abs(s[0])<2.5&&tilt<12}; }
+      if(s[1]>70 || Math.abs(s[4])>1.9){ return {traj:traj,thr:thr,speed:Math.hypot(s[2],s[3]),offset:Math.abs(s[0]),tilt:Math.abs(s[4])*180/Math.PI,ok:false}; } }
+    return {traj:traj,thr:thr,speed:Math.hypot(s[2],s[3]),offset:Math.abs(s[0]),tilt:Math.abs(s[4])*180/Math.PI,ok:false};
+  }
+
+  /* ---- scene ---- */
+  var data=15, resS, resB, scenN=1, START;
+  function newScenario(){ scenN=(scenN*1103515245+12345)&0x7fffffff; srand((scenN>>>0)||1);
+    START=[-13+ur()*26, 28+ur()*8, -3+ur()*6, -5+ur()*4, -0.22+ur()*0.44, -0.12+ur()*0.24]; }   // varied descent
+  newScenario();
+  function compute(){
+    var cem=((scenN^0x9e3779b9)>>>0)||1;   // MPC randomness fixed per scenario, so the data slider is a fair A/B
+    bbG=1;bbGr=G;bbTq=1; srand(cem); resS=land(structStep,START);
+    var e=bbErr(data); bbG=1+0.7*e; bbGr=G*(1-0.35*e); bbTq=1-0.75*e; srand(cem); resB=land(bbStep,START);
+  }
+
+  var cv=document.getElementById("c"), ctx=cv.getContext("2d");
+  var cssW=740, cssH=460, dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+  function sizeCanvas(){ cssW=cv.clientWidth||740; cssH=Math.round(cssW*460/740); cv.width=Math.round(cssW*dpr); cv.height=Math.round(cssH*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); }
+  var padB=30, padT=18, WX=[-22,22], WY=[0,40];
+  function sx(x){ return 30+(x-WX[0])/(WX[1]-WX[0])*(cssW-60); }
+  function sy(y){ return (cssH-padB)-(y-WY[0])/(WY[1]-WY[0])*(cssH-padT-padB); }
+  function scaleY(){ return (cssH-padT-padB)/(WY[1]-WY[0]); }
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  function path(traj,color,w,dash,upto){ ctx.save(); ctx.setLineDash(dash||[]); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.lineJoin="round"; ctx.beginPath();
+    var n=(upto==null?traj.length:Math.min(upto,traj.length)); for(var i=0;i<n;i++){ var p=traj[i]; if(i===0)ctx.moveTo(sx(p[0]),sy(p[1])); else ctx.lineTo(sx(p[0]),sy(p[1])); } ctx.stroke(); ctx.restore(); }
+  function rocketDraw(s,u,color){ var px=sx(s[0]), py=sy(s[1]), th=s[4], sc=scaleY(); var L=2.6*sc, Wd=0.8*sc;
+    ctx.save(); ctx.translate(px,py); ctx.rotate(-th);   // th=tilt from vertical
+    if(u && u[0]>0.5 && s[1]>0.05){ ctx.save(); ctx.rotate(-cP(u[1])); ctx.fillStyle=css("--flame"); var fl=(0.6+0.5*Math.random())*L;
+      ctx.beginPath(); ctx.moveTo(-Wd*0.5,L*0.5); ctx.lineTo(Wd*0.5,L*0.5); ctx.lineTo(0,L*0.5+fl); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(0,-L*0.5); ctx.lineTo(Wd*0.5,-L*0.2); ctx.lineTo(Wd*0.5,L*0.5); ctx.lineTo(-Wd*0.5,L*0.5); ctx.lineTo(-Wd*0.5,-L*0.2); ctx.closePath(); ctx.fill();
+    ctx.restore(); }
+  function padRing(x,color,r){ ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath(); ctx.ellipse(sx(x),sy(0),r,r*0.4,0,0,7); ctx.stroke(); }
+  function burst(x,y,color){ var cx=sx(x),cy=sy(Math.max(0,y)); ctx.strokeStyle=color; ctx.lineWidth=2.2; for(var a=0;a<6;a++){ var an=a*Math.PI/3+0.2; ctx.beginPath(); ctx.moveTo(cx+Math.cos(an)*4,cy+Math.sin(an)*4); ctx.lineTo(cx+Math.cos(an)*11,cy+Math.sin(an)*11); ctx.stroke(); } }
+
+  function draw(iS,iB){
+    ctx.clearRect(0,0,cssW,cssH);
+    var gy=sy(0); ctx.fillStyle=css("--ground"); ctx.fillRect(0,gy,cssW,cssH-gy);
+    ctx.strokeStyle=css("--line"); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(cssW,gy); ctx.stroke();
+    ctx.strokeStyle=css("--faint"); ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(sx(0),gy); ctx.lineTo(sx(0),padT); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=css("--faint"); ctx.font="10px "+css("--mono").replace(/"/g,"'"); ctx.textAlign="center"; ctx.fillText("PAD",sx(0),gy+16);
+    var st=css("--structure"), bb=css("--blackbox"), good=css("--good"), bad=css("--bad");
+    var jS=Math.min(iS,resS.traj.length-1), jB=Math.min(iB,resB.traj.length-1);
+    padRing(0,good,9);                                                     // pad target (the goal, not a spoiler)
+    path(resB.traj,bb,1.3,[5,5],jB+1); path(resS.traj,st,1.4,[],jS+1);     // trails grow behind each rocket
+    var lb=resB.traj[resB.traj.length-1], ls=resS.traj[resS.traj.length-1];
+    if(jS>=resS.traj.length-1) padRing(ls[0], resS.ok?st:bad, 6);          // outcome ring only once it lands
+    if(jB>=resB.traj.length-1){ padRing(lb[0], resB.ok?bb:bad, 6); if(!resB.ok) burst(lb[0],lb[1],bad); }
+    rocketDraw(resB.traj[jB], resB.thr[jB], bb); rocketDraw(resS.traj[jS], resS.thr[jS], st);
+  }
+
+  var raf=null,t0=null,DUR=3600;
+  function frame(ts){ if(t0===null)t0=ts; var el=ts-t0; var f=Math.min(1,el/DUR); draw(Math.floor(f*(resS.traj.length-1)), Math.floor(f*(resB.traj.length-1)));
+    if(el<DUR) raf=requestAnimationFrame(frame); else { draw(1e9,1e9); raf=null; } }
+  function play(){ if(raf)cancelAnimationFrame(raf); t0=null; if(reduce){ draw(1e9,1e9); } else { draw(0,0); raf=requestAnimationFrame(frame); } }   // start frame, then grow the trail (no full-path flash)
+
+  function verdict(r){ if(r.ok) return '<span class="ok">UPRIGHT</span> &middot; '+r.speed.toFixed(2)+' m/s';
+    if(r.tilt>20) return '<span class="crash">TOPPLED</span> &middot; '+r.tilt.toFixed(0)+'&deg; tilt';
+    return '<span class="crash">CRASH</span> &middot; '+Math.min(r.speed,99).toFixed(1)+' m/s'; }
+  function updateReadout(){
+    document.getElementById("tag").innerHTML = data<25 ? '<span style="color:var(--blackbox)">DATA-STARVED</span>' : '<span style="color:var(--structure)">enough data</span>';
+    document.getElementById("vS").innerHTML = verdict(resS); document.getElementById("vB").innerHTML = verdict(resB);
+  }
+  function refresh(){ compute(); updateReadout(); play(); }
+  var dEl=document.getElementById("data");
+  dEl.addEventListener("input",function(){ data=parseFloat(dEl.value); document.getElementById("dVal").textContent=data; compute(); updateReadout(); draw(1e9,1e9); });
+  dEl.addEventListener("change",refresh);
+  document.getElementById("fire").addEventListener("click",function(){ newScenario(); refresh(); });   // new random descent
+  window.addEventListener("resize",function(){ sizeCanvas(); draw(1e9,1e9); });
+  sizeCanvas(); compute(); updateReadout(); play();
+})();
+</script>
