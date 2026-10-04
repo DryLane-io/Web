@@ -3,259 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nio — The Dry Stack</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: #0c0d12;
-            color: rgba(230, 239, 255, 0.9);
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            min-height: 100vh;
-            padding: 48px 24px 80px;
-        }
-
-        .wrap { max-width: 1100px; margin: 0 auto; }
-
-        a.back {
-            color: rgba(160, 170, 200, 0.7);
-            text-decoration: none;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        a.back:hover { color: #fff; }
-
-        h1 {
-            color: #ffffff;
-            font-size: 2.8rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin: 18px 0 6px;
-            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
-        }
-
-        .tagline {
-            color: rgba(224, 232, 246, 0.92);
-            font-size: 1.05rem;
-            letter-spacing: 2px;
-            margin-bottom: 36px;
-        }
-
-        .section-label {
-            color: rgba(200, 210, 230, 0.85);
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin: 40px 0 14px;
-        }
-
-        /* Terminal-style log panel — plain (uncolored), light text. */
-        .logs {
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.18);
-            border-radius: 8px;
-            padding: 18px 20px;
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            font-size: 0.92rem;
-            font-weight: 300;
-            line-height: 1.6;
-            color: rgba(224, 232, 246, 0.92);
-            overflow-x: auto;
-            white-space: pre;
-        }
-
-        /* Plain-English sell block, above the proof. */
-        .sell {
-            color: rgba(214, 224, 244, 0.92);
-            font-size: 1.02rem;
-            line-height: 1.78;
-            max-width: 780px;
-            margin: 0 0 14px;
-        }
-        .sell strong { color: #fff; }
-        .sell .kicker {
-            color: rgba(150, 200, 255, 0.85);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.8rem;
-        }
-        .cta {
-            display: inline-block;
-            margin: 22px 0 8px;
-            color: #fff;
-            text-decoration: none;
-            border: 1px solid rgba(106, 168, 254, 0.5);
-            border-radius: 8px;
-            padding: 11px 24px;
-            font-size: 0.82rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            transition: background 0.2s ease, box-shadow 0.2s ease;
-        }
-        .cta:hover { background: rgba(106, 168, 254, 0.12); box-shadow: 0 0 26px rgba(106, 168, 254, 0.42); }
-
-        /* Comparison tables. */
-        table.cmp {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 8px 0 14px;
-            font-size: 0.9rem;
-        }
-        table.cmp th, table.cmp td {
-            text-align: right;
-            padding: 9px 14px;
-            border-bottom: 1px solid rgba(106, 168, 254, 0.12);
-            white-space: nowrap;
-        }
-        table.cmp th:first-child, table.cmp td:first-child {
-            text-align: left;
-            color: rgba(224, 232, 246, 0.92);
-        }
-        table.cmp thead th {
-            color: rgba(150, 200, 255, 0.85);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.7rem;
-            font-weight: 400;
-        }
-        table.cmp tr.nio td { color: #eaf2ff; background: rgba(106, 168, 254, 0.06); }
-        table.cmp tr.nio td:first-child { color: #fff; font-weight: 600; }
-        .win { color: #8fe6b0; }
-        .lose { color: #ff7b88; }
-        /* the .nio row sets its own cell color; re-assert win/lose with higher specificity so the
-           highlighted row still shows green wins and red losses. */
-        table.cmp tr.nio td.win { color: #8fe6b0; }
-        table.cmp tr.nio td.lose { color: #ff7b88; }
-        .muted { color: rgba(160, 170, 200, 0.55); }
-
-        /* Headline callout. */
-        .callout {
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.18);
-            border-left: 3px solid #6aa8fe;
-            border-radius: 8px;
-            padding: 18px 22px;
-            margin: 14px 0 10px;
-            font-size: 0.98rem;
-            line-height: 1.7;
-            max-width: 820px;
-        }
-        .callout b { color: #fff; }
-        .callout .big {
-            display: block;
-            font-size: 1.7rem;
-            color: #fff;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            text-shadow: 0 0 18px rgba(124, 255, 178, 0.25);
-        }
-        .footnote {
-            color: rgba(160, 170, 200, 0.5);
-            font-size: 0.76rem;
-            line-height: 1.6;
-            margin: 6px 0 0;
-            max-width: 820px;
-        }
-    </style>
+    <title>Nio, the Dry Stack network layer</title>
+    <script src="ink.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <div class="wrap">
-        <a class="back" href="stack.html">&larr; The Dry Stack</a>
+    <div class="sheet">
+        <a class="back" href="stack.html">&larr; the Dry Stack</a>
 
         <h1>Nio</h1>
-        <div class="tagline">Zero-copy async I/O &amp; messaging &mdash; tens of millions of msg/s on one connection, hundreds of millions fanned out; low-microsecond round-trips over loopback.</div>
-        <div class="tagline">NOTE: This is using the C# wrapper. Niolib is faster.</div>
+        <p class="tagline">Zero-copy messaging. 16&nbsp;&micro;s round-trips, and hundreds of millions of
+            messages a second on a handful of threads.</p>
 
-        <p class="sell"><span class="kicker">What it is.</span> The networking layer the rest of the
-            stack rides on &mdash; messages move <strong>without copies</strong>, straight from one
-            buffer to the wire and back &mdash; <strong>tens of millions a second on a single
-            connection, hundreds of millions fanned out</strong> across many.</p>
-        <p class="sell"><span class="kicker">The problem it kills.</span> Most systems pay a tax on
-            every message: serialize, copy into the kernel, copy out, deserialize. Where you'd reach
-            for Kafka or a socket library, Nio deletes those copies &mdash; the round-trip is
-            <strong>microseconds, not milliseconds</strong>.</p>
-        <p class="sell"><span class="kicker">For example.</span> It's what carries replication between
-            nodes in the <a href="https://chaos.drylane.io" style="color:#cfe0ff;">failover demo</a>
-            &mdash; fast enough that a standby stays within one unsealed segment of the leader. The run
-            below is a real harness, captured live.</p>
-        <a class="cta" href="https://chaos.drylane.io">See it carry a cluster &#10230;</a>
+        <div class="proof">
+            <a class="tile" href="#field" data-ink="box" data-reveal>
+                <span class="big">16&nbsp;&micro;s</span>
+                <span class="lbl">round-trip, median. gRPC takes 179&nbsp;&micro;s on the same machine.</span>
+            </a>
+            <a class="tile" href="#crowd" data-ink="box" data-reveal>
+                <span class="big">206M</span>
+                <span class="lbl">messages a second across 64 connections, on 12 threads.</span>
+            </a>
+            <a class="tile" href="#field" data-ink="box" data-reveal>
+                <span class="big">2.67&nbsp;GiB/s</span>
+                <span class="lbl">bulk stream throughput. Raw sockets reach 2.34.</span>
+            </a>
+            <a class="tile" href="#scale" data-ink="box" data-reveal>
+                <span class="big">12&nbsp;MB</span>
+                <span class="lbl">of thread memory at 1,000 connections. Thread-per-connection needs 2&nbsp;GB.</span>
+            </a>
+        </div>
+        <p class="proof-note">Every figure here goes through the C# wrapper. The native core underneath
+            is faster.</p>
 
-        <div class="section-label">Measured against the field &middot; C# wrapper, loopback</div>
-        <p class="sell">Same machine, same loopback, same 64-byte messages &mdash; Nio against the
-            libraries you'd actually reach for.</p>
-        <table class="cmp">
-            <thead>
-                <tr><th>Library</th><th>Round-trip&nbsp;p50</th><th>Push&nbsp;&middot;&nbsp;1&nbsp;conn</th><th>Bulk&nbsp;stream</th></tr>
-            </thead>
-            <tbody>
-                <tr class="nio"><td>Nio</td><td class="win">16&nbsp;&micro;s</td><td>28M&nbsp;msg/s</td><td class="win">2.67&nbsp;GiB/s</td></tr>
-                <tr><td>raw sockets</td><td>52&nbsp;&micro;s</td><td class="win">28&ndash;40M&nbsp;msg/s</td><td>2.34&nbsp;GiB/s</td></tr>
-                <tr><td>NetCoreServer</td><td>33&nbsp;&micro;s</td><td>4.0M&nbsp;msg/s</td><td>0.39&nbsp;GiB/s</td></tr>
-                <tr><td>WebSockets</td><td>67&nbsp;&micro;s</td><td class="lose">75K&nbsp;msg/s</td><td>0.86&nbsp;GiB/s</td></tr>
-                <tr><td>gRPC</td><td class="lose">179&nbsp;&micro;s</td><td class="lose">49K&nbsp;msg/s</td><td class="lose">0.15&nbsp;GiB/s</td></tr>
-            </tbody>
-        </table>
-        <p class="sell"><span class="kicker">Read it straight.</span> Nio matches hand-rolled raw
-            sockets on raw push, beats everything on latency, and leaves the high-level frameworks
-            &mdash; gRPC, WebSockets &mdash; <strong>100&ndash;1000&times; behind</strong>. But raw
-            throughput isn't the headline. <strong>What it costs to scale is.</strong></p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>What it is</dt>
+            <dd>The network layer the rest of the stack rides on. Messages go from one buffer to the
+                wire and back <strong>without copies</strong>: tens of millions a second on one
+                connection, hundreds of millions fanned out.</dd>
+            <dt>The problem</dt>
+            <dd>Most systems pay a tax on every message: serialize, copy into the kernel, copy out,
+                deserialize. Nio deletes the copies, so a round-trip takes microseconds instead of
+                milliseconds.</dd>
+            <dt>For example</dt>
+            <dd>It carries replication in the <a href="https://chaos.drylane.io">failover demo</a>, fast
+                enough that the standby stays within one unsealed segment of the leader.</dd>
+        </dl>
+        <a class="cta" href="https://chaos.drylane.io" data-ink="box" data-reveal>See it carry a cluster &rarr;</a>
 
-        <div class="section-label">The crowd test &middot; 64 connections at once</div>
-        <div class="callout">
+        <div class="section-wrap" id="field"><span class="section-label" data-ink="u" data-reveal>Measured against the field</span></div>
+        <p class="lede">Same machine, same loopback, same 64-byte messages. Nio against the libraries
+            you'd actually reach for.</p>
+        <div class="tbl">
+            <table class="cmp">
+                <thead>
+                    <tr><th>Library</th><th>Round-trip p50</th><th>Push, 1 conn</th><th>Bulk stream</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="me"><td>Nio</td><td class="win">16&nbsp;&micro;s</td><td>28M&nbsp;msg/s</td><td class="win">2.67&nbsp;GiB/s</td></tr>
+                    <tr><td>raw sockets</td><td>52&nbsp;&micro;s</td><td class="win">28&ndash;40M&nbsp;msg/s</td><td>2.34&nbsp;GiB/s</td></tr>
+                    <tr><td>NetCoreServer</td><td>33&nbsp;&micro;s</td><td>4.0M&nbsp;msg/s</td><td>0.39&nbsp;GiB/s</td></tr>
+                    <tr><td>WebSockets</td><td>67&nbsp;&micro;s</td><td class="lose">75K&nbsp;msg/s</td><td>0.86&nbsp;GiB/s</td></tr>
+                    <tr><td>gRPC</td><td class="lose">179&nbsp;&micro;s</td><td class="lose">49K&nbsp;msg/s</td><td class="lose">0.15&nbsp;GiB/s</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="lede">Nio matches hand-rolled raw sockets on push, beats everything on latency and
+            leaves gRPC and WebSockets <strong>100 to 1000 times behind</strong>. Raw throughput isn't
+            the headline, though. <strong>What it costs to scale is.</strong></p>
+
+        <div class="section-wrap" id="crowd"><span class="section-label" data-ink="u" data-reveal>The crowd test: 64 connections</span></div>
+        <div class="callout" data-ink="box2" data-reveal>
             <span class="big">12 threads. 206M msg/s.</span>
-            The async-TCP field needs <b>128 threads</b> &mdash; one pair per connection &mdash; to
-            push the same load. Nio drains all 64 connections with a handful of poll threads and
-            <b>no locks</b>, at <b>7&times; the work per thread</b>.
+            Thread-per-connection needs 128 threads, a pair per connection, to push the same load. Nio
+            drains all 64 connections with a few poll threads and <strong>no locks</strong>, doing
+            <strong>7 times the work per thread</strong>.
         </div>
-        <table class="cmp">
-            <thead>
-                <tr><th>64 connections</th><th>Aggregate</th><th>OS&nbsp;threads</th><th>Per&nbsp;thread</th></tr>
-            </thead>
-            <tbody>
-                <tr class="nio"><td>Nio</td><td>206M&nbsp;msg/s</td><td class="win">12</td><td class="win">17M&nbsp;msg/s</td></tr>
-                <tr><td>raw thread-per-conn</td><td class="win">299M&nbsp;msg/s</td><td class="lose">128</td><td class="lose">2.3M&nbsp;msg/s</td></tr>
-            </tbody>
-        </table>
-
-        <div class="section-label">Where it actually matters &middot; scaling to the crowd</div>
-        <p class="sell">Thread-per-connection wins the drag race and loses the war. Push the same
-            test to <strong>1,000 connections</strong>:</p>
-        <table class="cmp">
-            <thead>
-                <tr><th>1,000 connections</th><th>Aggregate</th><th>OS&nbsp;threads</th><th>Thread&nbsp;memory</th><th>1s&nbsp;push&nbsp;took</th></tr>
-            </thead>
-            <tbody>
-                <tr class="nio"><td>Nio</td><td>130M&nbsp;msg/s</td><td class="win">12</td><td class="win">~12&nbsp;MB</td><td class="win">1.0&nbsp;s</td></tr>
-                <tr><td>raw thread-per-conn</td><td class="win">307M&nbsp;msg/s</td><td class="lose">2,000</td><td class="lose">~2&nbsp;GB</td><td class="lose">7.2&nbsp;s</td></tr>
-            </tbody>
-        </table>
-        <div class="callout">
-            <span class="kicker">Threads &amp; memory &mdash; the real advantage</span><br>
-            Nio's threads and memory are <b>flat</b>: a fixed pool of poll threads and
-            pre-allocated, <b>GC-free</b> buffers &mdash; identical at 64 connections or 10,000.
-            Thread-per-connection pays <b>~1&nbsp;MB of stack per thread</b>: at 1,000 connections
-            that's <b>2,000 threads and ~2&nbsp;GB of stacks</b> before a single byte of payload, and
-            the scheduler buckles &mdash; a one-second push stretched to <b>seven seconds</b> of wall
-            clock. Nio never feels it.
+        <div class="tbl">
+            <table class="cmp">
+                <thead>
+                    <tr><th>64 connections</th><th>Aggregate</th><th>OS threads</th><th>Per thread</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="me"><td>Nio</td><td>206M&nbsp;msg/s</td><td class="win">12</td><td class="win">17M&nbsp;msg/s</td></tr>
+                    <tr><td>raw thread-per-conn</td><td class="win">299M&nbsp;msg/s</td><td class="lose">128</td><td class="lose">2.3M&nbsp;msg/s</td></tr>
+                </tbody>
+            </table>
         </div>
-        <p class="footnote"><b>Test bed:</b> AMD Ryzen&nbsp;9&nbsp;9950X (16&nbsp;cores&thinsp;/&thinsp;32&nbsp;threads),
-            64&nbsp;GB RAM, Windows&nbsp;11&nbsp;Pro, .NET&nbsp;10 Release&nbsp;x64. Loopback (127.0.0.1),
-            via the C# wrapper &mdash; the niolib core is faster. 64-byte messages; throughput is
-            time-boxed, median of repeated runs. "raw thread-per-conn" = one OS thread per socket
-            per side, the na&iuml;ve blocking model. Full harness in <code>samples/Nio.Benchmarks</code>.</p>
 
-        <div class="section-label">Live run &middot; samples/Example</div>
-        <pre class="logs" id="run-log">loading…</pre>
+        <div class="section-wrap" id="scale"><span class="section-label" data-ink="u" data-reveal>Scaling to 1,000 connections</span></div>
+        <p class="lede">Thread-per-connection wins the drag race and loses the war. Here is the same test
+            at <strong>1,000 connections</strong>:</p>
+        <div class="tbl">
+            <table class="cmp">
+                <thead>
+                    <tr><th>1,000 connections</th><th>Aggregate</th><th>OS threads</th><th>Thread memory</th><th>1 s push took</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="me"><td>Nio</td><td>130M&nbsp;msg/s</td><td class="win">12</td><td class="win">~12&nbsp;MB</td><td class="win">1.0&nbsp;s</td></tr>
+                    <tr><td>raw thread-per-conn</td><td class="win">307M&nbsp;msg/s</td><td class="lose">2,000</td><td class="lose">~2&nbsp;GB</td><td class="lose">7.2&nbsp;s</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout" data-ink="box2" data-reveal>
+            <span class="big">Flat threads, flat memory.</span>
+            Nio runs a fixed pool of poll threads over pre-allocated, GC-free buffers, the same at 64
+            connections or 10,000. Thread-per-connection pays about 1&nbsp;MB of stack per thread: at
+            1,000 connections that's 2,000 threads and 2&nbsp;GB of stacks before a byte of payload,
+            and the scheduler buckles. A one-second push took seven.
+        </div>
+        <p class="fine"><strong>Test bed:</strong> AMD Ryzen&nbsp;9&nbsp;9950X (16 cores, 32 threads),
+            64&nbsp;GB RAM, Windows&nbsp;11 Pro, .NET&nbsp;10 Release x64, loopback, through the C#
+            wrapper. 64-byte messages; throughput is time-boxed, median of repeated runs.
+            "Raw thread-per-conn" is one OS thread per socket per side, the plain blocking model. Full
+            harness in <code>samples/Nio.Benchmarks</code>.</p>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Test run on Linux and Windows</span></div>
+        <p class="lede">The example program in <code>samples/Example</code> runs seven tests over
+            loopback: batched events, request/response, streaming both ways, mixed queries, broadcast
+            and multi-client ping-pong.</p>
+        <ul class="checks" data-reveal>
+            <li><svg viewBox="0 0 16 16"><path class="pen" style="--d:.1s" d="M1 9 L6 14 L15 2"/></svg>
+                <span><strong>All 7 tests pass on both platforms.</strong><span class="res">10,008,261 events, 20,208 requests and 500 stream frames received by the server</span></span></li>
+            <li><svg viewBox="0 0 16 16"><path class="pen" style="--d:.25s" d="M1 9 L6 14 L15 2"/></svg>
+                <span><strong>Nothing dropped.</strong><span class="res">0 dropped messages; every broadcast delivered, 300 of 300</span></span></li>
+        </ul>
+        <div class="tbl">
+            <table class="cmp">
+                <thead>
+                    <tr><th>Test</th><th>Linux<span class="sub">Ryzen 9 9950X, io_uring</span></th><th>Windows<span class="sub">Ryzen 9 7950X3D, RIO</span></th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Batched events, 10M messages</td><td>99.2M&nbsp;msg/s</td><td>30.0M&nbsp;msg/s</td></tr>
+                    <tr><td>Request/response, average round-trip</td><td>5.9&nbsp;&micro;s</td><td>14.4&nbsp;&micro;s</td></tr>
+                    <tr><td>Ping-pong, 10 clients, average round-trip</td><td>6.4&nbsp;&micro;s</td><td>14.1&nbsp;&micro;s</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="fine">Linux runs about 2.5 to 3 times faster than Windows in this test. The 16&nbsp;&micro;s
+            head-to-head figure above comes from a different harness and message size. The streaming and
+            upload tests move under 1&nbsp;MB, too little to measure bandwidth, so their numbers are only in
+            the raw output.</p>
+        <details class="raw" data-log="logs/nio-example.txt">
+            <summary>show raw output &darr;<span class="when">captured 20 June 2026, unedited</span></summary>
+        </details>
+
+        <div class="contact" data-ink="box2" data-reveal>
+            <span class="contact-h">Want Nio in your system?</span>
+            <p>Nio isn't public yet. If your messages spend more time in copies than in your code, tell
+                us what you'd build and we'll talk.</p>
+            <a class="contact-mail" href="mailto:info@drylane.io">info@drylane.io</a>
+        </div>
+
+        <div class="foot">Nio is part of <a href="stack.html">the Dry Stack</a>, built by
+            <a href="about.html">Drylane</a>.</div>
     </div>
 
-    <script>
-        // Pull the real harness output (captured from samples/Example) as plain text.
-        // textContent escapes it — no markup trusted from the log.
-        fetch('logs/nio-example.txt')
-            .then(r => r.ok ? r.text() : Promise.reject(r.status))
-            .then(txt => { document.getElementById('run-log').textContent = txt.replace(/\r/g, ''); })
-            .catch(() => { document.getElementById('run-log').textContent = 'run log unavailable'; });
-    </script>
+    <script src="logs.js"></script>
 </body>
 </html>

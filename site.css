@@ -1,0 +1,378 @@
+/* drylane.io inner pages: a drafting sheet on a desk.
+   Fonts: Special Elite (headings), Inter (text), Caveat (hand notes). Code uses the system mono.
+   --g (5 mm) is the spacing unit. ink.js draws every [data-ink] outline. */
+:root {
+    --g: 5mm;
+    --paper: #fbfaf5;
+    --paper-dark: #f2efe6;
+    --desk: #6f6a62;
+    --pencil: rgba(60, 70, 92, 0.45);
+    --ink: #1c2638;
+    --ink-soft: #4d586d;
+    --blue: #1f5fbf;
+    --red: #c23a2e;
+    --green: #2e7d4f;
+    --hl: rgba(255, 222, 70, 0.55);
+    --hand: 'Caveat', 'Segoe Print', cursive;
+    --type: 'Special Elite', 'Courier New', monospace;
+    --code: ui-monospace, 'Cascadia Code', Consolas, Menlo, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: var(--desk);
+    color: var(--ink);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: calc(var(--g) * 2) var(--g) calc(var(--g) * 3);
+}
+
+.sheet {
+    max-width: calc(var(--g) * 65);
+    margin: 0 auto;
+    padding: calc(var(--g) * 3) calc(var(--g) * 4) calc(var(--g) * 4);
+    background-color: var(--paper);
+    box-shadow: 0 2px 4px rgba(20, 16, 10, 0.25), 0 14px 44px rgba(20, 16, 10, 0.35);
+    overflow: hidden;   /* pencil overshoot stops at the paper edge */
+}
+
+strong, b { font-weight: 600; color: #0d1424; }
+code { font-family: var(--code); font-size: 0.9em; }
+
+/* Special Elite has no bold cut; a stroke in the text colour reads as a double-struck key. */
+h1, .abox-name, .card .name, .part h3 { -webkit-text-stroke: 0.8px currentColor; }
+
+a.back {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+a.back:hover { color: var(--blue); }
+
+h1 {
+    font-family: var(--type);
+    font-weight: normal;
+    font-size: 44px;
+    line-height: calc(var(--g) * 3);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin: var(--g) 0;
+}
+
+.tagline { max-width: 900px; font-size: 1.55rem; font-weight: 600; line-height: 1.3; margin: 0 0 var(--g); }
+.lede { max-width: 900px; font-size: 1.05rem; line-height: 1.75; margin: 0 0 var(--g); }
+.sub { max-width: 900px; font-size: 0.95rem; line-height: 1.7; margin: 0 0 var(--g); color: var(--ink-soft); }
+.fine { max-width: 900px; margin: var(--g) 0 0; font-size: 0.82rem; line-height: 1.6; color: var(--ink-soft); }
+.lede a, .sub a, .fine a, .foot a, .spec a, .part a, ul.plain a, .callout a {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(31, 95, 191, 0.4);
+}
+.lede a:hover, .sub a:hover, .fine a:hover, .foot a:hover, .spec a:hover, .part a:hover, ul.plain a:hover, .callout a:hover { border-bottom-color: var(--blue); }
+
+ul.plain { max-width: 900px; margin: 0 0 var(--g) 1.2em; font-size: 0.95rem; line-height: 1.7; }
+ul.plain li { margin-bottom: 0.4em; }
+
+/* Handwritten notes: red pen for the problem, blue/green for the answer. */
+.note { font-family: var(--hand); font-size: 21px; font-weight: 500; line-height: var(--g); }
+
+/* ── Ink, drafting-table style: pencil construction lines that run past the corners,
+   then a fatter ruled ink line that stops exactly at them. */
+[data-ink] { position: relative; }
+html:not(.js) [data-ink] { outline: 1.5px solid var(--ink); }
+svg.ink {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    overflow: visible; pointer-events: none;
+    fill: none; stroke-linecap: round;
+}
+svg.ink.u { inset: auto 0 -3px 0; height: 4px; }
+svg.ink .c { stroke: var(--pencil); stroke-width: 0.9; }
+svg.ink .k { stroke: var(--ink); stroke-width: 2.1; stroke-linejoin: miter; stroke-linecap: square; }
+svg.ink.box2 .k { stroke: var(--blue); stroke-width: 2.6; }
+svg.ink.boxr .k { stroke: var(--red); stroke-width: 2.6; }
+svg.ink.u .k { stroke: var(--blue); }
+
+.pen { stroke-dasharray: 100; stroke-dashoffset: 0; }
+.anim .pen { stroke-dashoffset: 100; transition: stroke-dashoffset 0.8s cubic-bezier(.5, 0, .3, 1) var(--d, 0s); }
+.anim .drawn .pen { stroke-dashoffset: 0; }
+.anim svg.ink .c { transition-duration: 0.55s; }
+.anim svg.ink .k { transition-delay: calc(var(--d, 0s) + 0.45s); }
+
+.anim .note { clip-path: inset(-0.4em 100% -0.4em 0); transition: clip-path 0.7s ease var(--d, 0s); }
+.anim .drawn .note { clip-path: inset(-0.4em -0.4em -0.4em 0); }
+
+.fade { opacity: 1; }
+.anim .fade { opacity: 0; transition: opacity 0.5s ease var(--d, 0s); }
+.anim .drawn .fade { opacity: 1; }
+
+/* ── Section labels with an inked underline. */
+.section-wrap { display: block; }
+.section-label {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: calc(var(--g) * 3) 0 var(--g);
+}
+
+/* ── Title-block notes: label column + value column, rows split by pencil rules. */
+.spec {
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    margin: calc(var(--g) * 2) 0 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.spec dt, .spec dd { padding: calc(var(--g) * 0.5) var(--g); }
+.spec dt {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--pencil);
+    padding-top: calc(var(--g) * 0.5 + 3px);
+}
+.spec dt:not(:first-of-type), .spec dd:not(:first-of-type) { border-top: 1px solid var(--pencil); }
+
+/* ── Fusion sketch (stack page): three boxes glued by seams, fused into one. */
+.fusion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--g);
+    margin: calc(var(--g) * 2) 0;
+}
+.fusion .before, .fusion .after { flex: 1 1 calc(var(--g) * 16); max-width: calc(var(--g) * 21); }
+.fbox { line-height: var(--g); display: flex; flex-direction: column; padding: calc(var(--g) * 0.5) var(--g); }
+.fbox-k { font-weight: 600; }
+.fbox-s { color: var(--ink-soft); font-size: 13px; }
+.seam { position: relative; height: calc(var(--g) * 2); }
+.seam svg { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; overflow: visible; stroke: var(--red); stroke-width: 1.6; fill: none; }
+.seam .note { position: absolute; left: calc(50% + 12px); top: calc(var(--g) * 0.5); color: var(--red); white-space: nowrap; }
+.before-tag { margin-top: var(--g); text-align: center; color: var(--red); }
+.fuse { display: flex; flex-direction: column; align-items: center; }
+.fuse svg { width: 84px; height: 34px; overflow: visible; stroke: var(--blue); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fuse .note { color: var(--blue); }
+.abox { padding: var(--g) calc(var(--g) * 1.5); }
+.abox-name { font-family: var(--type); font-size: 26px; line-height: calc(var(--g) * 2); letter-spacing: 4px; }
+.abox-row { line-height: var(--g); display: flex; align-items: center; gap: 10px; }
+.abox-row svg { width: 14px; height: 14px; overflow: visible; stroke: var(--green); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.abox-tag { margin-top: var(--g); color: var(--green); }
+
+/* ── Cards. */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--g) * 15), 1fr));
+    gap: var(--g);
+}
+.grid.four { grid-template-columns: repeat(auto-fill, minmax(calc(var(--g) * 11.5), 1fr)); }
+a.card, div.card { display: block; text-decoration: none; color: inherit; padding: var(--g); }
+a.card:hover svg.ink .k, a.tile:hover svg.ink .k, a.cta:hover svg.ink .k { stroke: var(--blue); }
+.card .name {
+    font-family: var(--type);
+    font-size: 20px;
+    line-height: calc(var(--g) * 2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    /* Highlighter swipe on hover, the only hover effect. */
+    background: linear-gradient(transparent 50%, var(--hl) 50%, var(--hl) 88%, transparent 88%) no-repeat;
+    background-size: 0 100%;
+    transition: background-size 0.3s ease;
+}
+a.card:hover .name { background-size: 100% 100%; }
+.name-line { display: block; }
+.card .what { font-size: 0.92rem; line-height: 1.5; margin-bottom: var(--g); }
+.card .why { font-size: 0.82rem; line-height: 1.55; color: var(--ink-soft); }
+.card .tag { display: block; color: var(--blue); }
+.card .tag.new { color: var(--red); }
+
+/* Plain explanatory boxes (data model, limits). */
+.part { padding: var(--g); }
+.part .tag { display: block; color: var(--blue); }
+.part h3 {
+    font-family: var(--type);
+    font-weight: normal;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.part p { font-size: 0.9rem; line-height: 1.55; }
+.part p + p { margin-top: 8px; }
+
+/* Demo sketches: static pen drawings, drawn once on scroll. */
+.sketch { display: block; width: 100%; height: calc(var(--g) * 4); margin-bottom: calc(var(--g) * 0.5); overflow: visible; }
+.sketch .s { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sketch .b { stroke: var(--blue); }
+.sketch .r { stroke: var(--red); }
+.sketch .g { stroke: var(--green); }
+.sketch .dash { stroke-dasharray: 3 4; }
+.sketch .hatch { fill: url(#hatch); stroke: none; }
+.sketch text { font-family: var(--hand); font-size: 15px; fill: var(--red); }
+
+/* ── Sell blocks: measured numbers, callouts, break-it invitation, contact. */
+.proof {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(calc(var(--g) * 11), 1fr));
+    gap: var(--g);
+}
+a.tile, div.tile { display: flex; flex-direction: column; gap: 6px; padding: var(--g); text-decoration: none; color: inherit; }
+.tile .big {
+    font-family: var(--type);
+    font-size: 2.5rem;
+    line-height: 1.1;
+    color: var(--blue);
+    -webkit-text-stroke: 0.8px currentColor;
+}
+.tile .lbl { font-size: 0.88rem; line-height: 1.45; }
+.proof-note { max-width: 900px; margin: var(--g) 0 0; font-size: 0.82rem; line-height: 1.55; color: var(--ink-soft); }
+
+.callout { max-width: 900px; margin: calc(var(--g) * 1.5) 0; padding: var(--g) calc(var(--g) * 1.5); font-size: 0.95rem; line-height: 1.6; }
+.callout .big {
+    display: block;
+    font-family: var(--type);
+    font-size: 1.6rem;
+    line-height: 1.3;
+    letter-spacing: 1px;
+    color: var(--blue);
+    -webkit-text-stroke: 0.8px currentColor;
+    margin-bottom: 6px;
+}
+
+a.cta {
+    display: inline-block;
+    margin: var(--g) 0 0;
+    padding: calc(var(--g) * 0.5) calc(var(--g) * 1.2);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+}
+a.cta:hover { color: var(--blue); }
+
+a.breakit {
+    display: grid;
+    grid-template-columns: calc(var(--g) * 11) 1fr;
+    gap: calc(var(--g) * 1.5);
+    align-items: center;
+    margin: calc(var(--g) * 3) 0 0;
+    padding: var(--g) calc(var(--g) * 1.5);
+    text-decoration: none;
+    color: inherit;
+}
+.breakit .sketch { margin: 0; }
+.breakit-text { display: flex; flex-direction: column; gap: 4px; }
+.breakit-h, .contact-h {
+    font-family: var(--type);
+    font-size: 1.45rem;
+    line-height: 1.3;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    -webkit-text-stroke: 0.8px currentColor;
+}
+.breakit-p { font-size: 0.95rem; line-height: 1.6; }
+.breakit-go { color: var(--red); }
+a.breakit:hover .breakit-h { color: var(--red); }
+
+.contact { max-width: 900px; margin: calc(var(--g) * 4) 0 0; padding: calc(var(--g) * 1.5); }
+.contact p { margin: 6px 0 var(--g); line-height: 1.6; }
+.contact-mail {
+    font-family: var(--type);
+    font-size: 1.3rem;
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 2px solid rgba(31, 95, 191, 0.4);
+}
+.contact-mail:hover { border-bottom-color: var(--blue); }
+.contact .links { margin-top: var(--g); font-size: 0.9rem; }
+.contact .links a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(31, 95, 191, 0.4); margin-right: var(--g); }
+
+.foot { margin-top: calc(var(--g) * 3); font-size: 0.9rem; line-height: 1.7; color: var(--ink-soft); }
+
+/* ── Comparison tables: ruled like a drawing schedule. Win = blue ink, loss = red pen. */
+.tbl { max-width: 100%; overflow-x: auto; margin: var(--g) 0; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.cmp th, .cmp td { text-align: left; padding: calc(var(--g) * 0.45) calc(var(--g) * 0.8); white-space: nowrap; }
+.cmp thead th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 1.5px solid var(--ink);
+    vertical-align: bottom;
+}
+.cmp th .sub { display: block; font-size: 0.66rem; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.cmp tbody td { border-top: 1px solid var(--pencil); font-variant-numeric: tabular-nums; }
+.cmp tbody tr:first-child td { border-top: 0; }
+.cmp tr.me td { background: rgba(31, 95, 191, 0.06); font-weight: 600; }
+.cmp td.win { color: var(--blue); font-weight: 600; }
+.cmp td.lose { color: var(--red); }
+.cmp .muted { color: var(--ink-soft); font-weight: 400; }
+
+/* ── Code and raw logs. Wrapper carries the ink box; the pre gets its text from fetch. */
+.codebox { margin: var(--g) 0 0; background: var(--paper-dark); }
+pre.code, pre.logs {
+    font-family: var(--code);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: var(--g);
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ink);
+}
+pre.logs { max-height: 640px; overflow-y: auto; }
+pre.code .c { color: var(--green); }
+.lang { font-family: var(--hand); font-size: 20px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--blue); margin-left: 10px; }
+
+/* ── Test results: a ticked checklist, then raw output behind a toggle. */
+ul.checks { list-style: none; max-width: 900px; margin: var(--g) 0; }
+ul.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--pencil); font-size: 0.95rem; line-height: 1.5; }
+ul.checks li:first-child { border-top: 0; }
+ul.checks svg { width: 16px; height: 16px; margin-top: 3px; overflow: visible; stroke: var(--green); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+ul.checks .res { display: block; font-size: 0.82rem; color: var(--ink-soft); }
+
+details.raw { margin: var(--g) 0 0; }
+details.raw summary { cursor: pointer; list-style: none; font-family: var(--hand); font-size: 22px; color: var(--blue); }
+details.raw summary::-webkit-details-marker { display: none; }
+details.raw summary .when { font-family: 'Inter', sans-serif; font-size: 0.78rem; color: var(--ink-soft); margin-left: 8px; }
+.raw-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.raw-tabs button {
+    background: none;
+    border: 1.5px solid var(--pencil);
+    padding: 4px 12px;
+    font: 600 0.75rem 'Inter', sans-serif;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+.raw-tabs button.on { border-color: var(--blue); color: var(--blue); }
+
+@media (max-width: 768px) {
+    body { padding: 8px 8px calc(var(--g) * 2); }
+    .sheet { padding: calc(var(--g) * 2) var(--g) calc(var(--g) * 3); }
+    .fusion { flex-direction: column; align-items: stretch; }
+    .fusion .before, .fusion .after { flex: none; width: 100%; max-width: none; }
+    .fuse svg { transform: rotate(90deg); margin: var(--g) 0; }
+    h1 { font-size: 30px; letter-spacing: 3px; line-height: calc(var(--g) * 2); }
+    pre.code, pre.logs { font-size: 0.74rem; }
+}
+
+@media (max-width: 560px) {
+    /* Phone: label sits above its value instead of beside it. */
+    .spec { grid-template-columns: 1fr; }
+    .spec dt { border-right: 0; padding-bottom: 0; }
+    .spec dd { border-top: 0 !important; padding-top: 2px; }
+    a.breakit { grid-template-columns: 1fr; }
+    .tagline { font-size: 1.3rem; }
+    .tile .big { font-size: 2rem; }
+}

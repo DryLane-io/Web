@@ -3,312 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About — the maker behind The Dry Stack</title>
+    <title>About Drylane</title>
+    <script src="ink.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: #0c0d12;
-            color: rgba(230, 239, 255, 0.9);
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            min-height: 100vh;
-            padding: 48px 24px 80px;
-        }
-
-        /* Subtle drifting particle field — the calm at the eye of the storm. */
-        #eye-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            display: block;
-        }
-
-        .wrap { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
-
-        a.back {
-            color: rgba(160, 170, 200, 0.7);
-            text-decoration: none;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        a.back:hover { color: #fff; }
-
-        h1 {
-            color: #ffffff;
-            font-family: 'Special Elite', 'Courier New', monospace;
-            font-size: 2.8rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin: 18px 0 6px;
-            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
-        }
-
-        .lede {
-            color: rgba(224, 232, 246, 0.92);
-            font-size: 1.05rem;
-            line-height: 1.75;
-            max-width: 760px;
-            margin: 14px 0 8px;
-        }
-        .lede strong { color: #fff; }
-
-        .sub {
-            color: rgba(190, 200, 222, 0.75);
-            font-size: 0.95rem;
-            line-height: 1.7;
-            max-width: 760px;
-            margin: 0 0 16px;
-        }
-        .sub strong { color: rgba(224, 232, 246, 0.95); }
-
-        .lede a, .sub a {
-            color: rgba(224, 232, 246, 0.95);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(106, 168, 254, 0.4);
-            transition: color 0.2s ease, border-color 0.2s ease;
-        }
-        .lede a:hover, .sub a:hover { color: #fff; border-color: rgba(150, 200, 255, 0.9); }
-
-        .section-label {
-            color: rgba(200, 210, 230, 0.85);
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin: 44px 0 16px;
-        }
-
-        /* By-the-numbers strip */
-        .stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px 30px;
-            margin: 22px 0 8px;
-            max-width: 760px;
-        }
-        .stat { color: rgba(190, 200, 222, 0.72); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
-        .stat b {
-            display: block;
-            color: #ffffff;
-            font-size: 1.35rem;
-            letter-spacing: 1px;
-            text-transform: none;
-            text-shadow: 0 0 14px rgba(106, 168, 254, 0.4);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-
-        .card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.18);
-            border-radius: 8px;
-            padding: 20px 22px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        a.card:hover {
-            border-color: rgba(106, 168, 254, 0.55);
-            box-shadow: 0 0 28px rgba(106, 168, 254, 0.18);
-            transform: translateY(-2px);
-        }
-
-        .card .name {
-            color: #ffffff;
-            font-size: 1.25rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            text-shadow: 0 0 14px rgba(106, 168, 254, 0.4);
-        }
-        .card .what {
-            color: rgba(206, 216, 236, 0.9);
-            font-size: 0.92rem;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-        .card .why {
-            color: rgba(170, 182, 208, 0.72);
-            font-size: 0.82rem;
-            line-height: 1.55;
-        }
-
-        .foot {
-            margin-top: 56px;
-            color: rgba(190, 200, 222, 0.75);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-        .foot strong { color: #fff; }
-        .foot a {
-            color: rgba(200, 210, 230, 0.85);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(106, 168, 254, 0.3);
-        }
-        .foot a:hover { color: #fff; }
-        .foot .links { margin-top: 14px; letter-spacing: 1px; word-spacing: 6px; }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; letter-spacing: 3px; }
-            .lede { font-size: 0.95rem; }
-            .stat b { font-size: 1.15rem; }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <canvas id="eye-canvas"></canvas>
-    <div class="wrap">
+    <div class="sheet">
         <a class="back" href="index.html">&larr; back to the storm</a>
 
         <h1>About</h1>
-        <p class="lede">I quit my job a while ago. The plan was a break &mdash; some freedom, some
-            rest. Instead, the nerding kicked into a higher gear than ever, and it's been far more
-            fun than any holiday.</p>
-        <p class="lede">Then came drylane.io and <a href="stack.html"><strong>The Dry Stack</strong></a>: a database, a
-            message layer, and a serializer &mdash; fused into one stack, written from scratch in
+        <p class="tagline">One engineer, forty years in, building the stack I always wanted.</p>
+        <p class="lede">I quit my job a while ago. The plan was a break, some freedom and some rest.
+            Instead the nerding went up a gear, and it has been more fun than any holiday.</p>
+        <p class="lede">Then came drylane.io and <a href="stack.html"><strong>the Dry Stack</strong></a>:
+            a database, a message layer and a serializer fused into one stack, written from scratch in
             <strong>C++</strong> with zero-copy <strong>C#</strong> wrappers, plus a real-time audio
             engine for good measure. The core came together in <strong>about a month</strong>.</p>
-        <p class="sub">The benchmarks so far? Very satisfying. Not impressed? Let's run them on your
-            hardware. &#128515;</p>
+        <p class="sub">The benchmarks so far are very satisfying. Not convinced? Let's run them on your
+            hardware.</p>
 
-        <div class="stats">
-            <div class="stat"><b>40+</b> years building</div>
-            <div class="stat"><b>3</b> core engines, fused</div>
-            <div class="stat"><b>~1 month</b> to a working stack</div>
-            <div class="stat"><b>millions/sec</b> ingest</div>
-            <div class="stat"><b>microseconds</b> per query</div>
+        <div class="proof">
+            <div class="tile" data-ink="box" data-reveal><span class="big">40+</span><span class="lbl">years of building software</span></div>
+            <div class="tile" data-ink="box" data-reveal><span class="big">~1</span><span class="lbl">month to a working stack</span></div>
+            <a class="tile" href="facts.html" data-ink="box" data-reveal><span class="big">20M/s</span><span class="lbl">ingest on a single core</span></a>
+            <a class="tile" href="facts.html" data-ink="box" data-reveal><span class="big">0.2&nbsp;&micro;s</span><span class="lbl">for the latest value</span></a>
         </div>
 
-        <div class="section-label">How it's built</div>
-        <p class="sub">Every architecture and design decision is mine. <strong>AI comes in as an
-            iterative accelerator</strong>, under tight technical direction &mdash; a tool that lets
-            one experienced engineer move at the speed of a team, not a substitute for knowing what
-            you're doing. That's how a stack this broad shipped this fast. And the ML fundamentals
-            are old ground here &mdash; a from-scratch neural-network engine in C++, with
-            backpropagation and live learning-rate visualization, dates back to the DTU years.</p>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>How it's built</span></div>
+        <p class="lede">Every architecture and design decision is mine. <strong>AI is an iterative
+            accelerator</strong> under tight technical direction: a tool that lets one experienced
+            engineer move at the speed of a team, not a substitute for knowing what you're doing.
+            That's how a stack this broad shipped this fast. The ML fundamentals are old ground, too:
+            a from-scratch neural-network engine in C++, with backpropagation and live learning-rate
+            visualization, dates back to the DTU years.</p>
 
-        <div class="section-label">Forty years in</div>
-        <p class="sub">None of this came out of nowhere. The first program came at <strong>six</strong>,
-            the first game at <strong>nine</strong>, and not much has stopped since &mdash;
-            from the <strong>Amiga demoscene</strong> and 68k assembler, through <strong>real-time
-            audio DSP</strong> at DTU, two decades of embedded payment and industrial systems, and a
-            from-scratch <strong>time-series database</strong> now being rolled out as the standard
-            for vessel automation and event data at a <strong>leading player in the marine
-            industry</strong>.
-            The Dry Stack is what all of that compounds into. (Unda, the audio engine, even closes
-            the loop back to those university DSP projects.)</p>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Forty years in</span></div>
+        <p class="lede">None of this came out of nowhere. The first program came at <strong>six</strong>
+            and the first game at <strong>nine</strong>, and not much has stopped since: the
+            <strong>Amiga demoscene</strong> and 68k assembler, <strong>real-time audio DSP</strong> at
+            DTU, two decades of embedded payment and industrial systems, and a from-scratch
+            <strong>time-series database</strong> now rolling out as the standard for vessel automation
+            and event data at a <strong>leading player in the marine industry</strong>. The Dry Stack
+            is what all of that compounds into. Unda, the audio engine, even closes the loop back to
+            those university DSP projects.</p>
 
-        <div class="section-label">What I'm building</div>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>What I'm building</span></div>
         <div class="grid">
-            <a class="card" href="facts.html">
-                <div class="name">Facts</div>
-                <div class="what">Time-series / event store answering in microseconds &mdash; SIMD
-                    query surfaces over billions of records, append-only and tag-oriented.</div>
-                <div class="why">Where you'd reach for InfluxDB or Timescale &mdash; on one box,
-                    far faster.</div>
+            <a class="card" href="facts.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Facts</span></span>
+                <div class="what">A time-series and event store that answers in microseconds. SIMD
+                    queries over billions of records, append-only and tag-oriented.</div>
+                <div class="why">Replaces InfluxDB or Timescale on one box, and runs far faster.</div>
             </a>
-            <a class="card" href="nio.html">
-                <div class="name">Nio</div>
-                <div class="what">Network I/O built around bidirectional events, messages, batching
-                    and streaming &mdash; tens of millions of messages/second.</div>
-                <div class="why">Where you'd reach for Kafka &mdash; without the copies and the
-                    hops.</div>
+            <a class="card" href="nio.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Nio</span></span>
+                <div class="what">Network I/O built around bidirectional events, messages, batching and
+                    streaming. Tens of millions of messages a second.</div>
+                <div class="why">Replaces Kafka's copies and hops.</div>
             </a>
-            <a class="card" href="zao.html">
-                <div class="name">Zao</div>
-                <div class="what">Generator-based serializers at memcpy speed with minimal memory
-                    overhead. Zeroes And Ones.</div>
-                <div class="why">Where you'd reach for Protobuf &mdash; at the speed of a raw memory
-                    copy.</div>
+            <a class="card" href="zao.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Zao</span></span>
+                <div class="what">Generated serializers at memcpy speed with minimal memory overhead.
+                    The name stands for Zeroes And Ones.</div>
+                <div class="why">Replaces Protobuf at the cost of a raw memory copy.</div>
             </a>
-            <div class="card">
-                <div class="name">Unda</div>
-                <div class="what">A real-time, low-latency audio engine &mdash; DSP building blocks
-                    for voice and guitar-effect processing.</div>
-                <div class="why">It already powers a peer-to-peer VoIP proof-of-concept built on
-                    Nio. Once you have transport, audio, and a curiosity about latency, it has to be
-                    done.</div>
+            <a class="card" href="relay.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Relay</span></span>
+                <div class="what">Durable pub/sub built from the other three, where the log is the
+                    broker.</div>
+                <div class="why">Replays history at about 35 times the speed of NATS JetStream.</div>
+            </a>
+            <div class="card" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Unda</span></span>
+                <div class="what">A real-time, low-latency audio engine. DSP building blocks for voice
+                    and guitar-effect processing.</div>
+                <div class="why">It already powers a peer-to-peer VoIP proof of concept on Nio. Once
+                    you have transport, audio and a curiosity about latency, it has to be done.</div>
             </div>
         </div>
 
-        <div class="foot">
-            Where's it going? Not entirely sure. But the direction is clear:
-            <strong>fast, fun, cool, and good for the world.</strong>
-            <br><br>
-            Also open to <strong>remote engagements</strong> &mdash; the challenging, genuinely
-            interesting, fairly compensated kind. If you've got a hard problem in performance,
-            systems, low-level, or real-time, that's exactly my kind of problem.
+        <div class="contact" data-ink="box2" data-reveal>
+            <span class="contact-h">Got a hard problem?</span>
+            <p>Where is this going? Not entirely sure, but the direction is clear: <strong>fast, fun,
+                cool and good for the world.</strong> I'm also open to <strong>remote
+                engagements</strong> of the challenging, genuinely interesting, fairly paid kind. Hard
+                problems in performance, systems, low-level or real-time code are exactly my kind of
+                problem.</p>
+            <a class="contact-mail" href="mailto:info@drylane.io">info@drylane.io</a>
             <div class="links">
-                <a href="mailto:info@drylane.io">info@drylane.io</a> &middot;
-                <a href="https://www.linkedin.com/company/drylane-io">LinkedIn</a> &middot;
+                <a href="https://www.linkedin.com/company/drylane-io">LinkedIn</a>
                 <a href="https://x.com/drylaneio">X</a>
             </div>
         </div>
     </div>
-
-    <script>
-        // Eye-of-the-storm ambience: a sparse field of faint particles drifting in a
-        // slow swirl. Decorative only; pauses for prefers-reduced-motion.
-        (() => {
-            const canvas = document.getElementById('eye-canvas');
-            const ctx = canvas.getContext('2d');
-            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            let w, h, cx, cy, particles;
-
-            function seed() {
-                w = canvas.width = window.innerWidth;
-                h = canvas.height = window.innerHeight;
-                cx = w / 2; cy = h / 2;
-                const count = Math.min(280, Math.floor(w * h / 7000));
-                particles = [];
-                for (let i = 0; i < count; i++) {
-                    particles.push({
-                        x: Math.random() * w,
-                        y: Math.random() * h,
-                        r: Math.random() * 1.4 + 0.4,
-                        a: Math.random() * 0.35 + 0.06,
-                        drift: Math.random() * 0.0006 + 0.0002,
-                        vy: Math.random() * 0.12 + 0.03
-                    });
-                }
-            }
-
-            function draw(animate) {
-                ctx.clearRect(0, 0, w, h);
-                for (const p of particles) {
-                    if (animate) {
-                        const dx = p.x - cx, dy = p.y - cy;
-                        const cos = Math.cos(p.drift), sin = Math.sin(p.drift);
-                        p.x = cx + dx * cos - dy * sin;
-                        p.y = cy + dx * sin + dy * cos - p.vy;
-                        if (p.y < -5) p.y = h + 5;
-                        if (p.x < -5) p.x = w + 5; else if (p.x > w + 5) p.x = -5;
-                    }
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(150, 185, 235, ' + p.a + ')';
-                    ctx.fill();
-                }
-                if (animate) requestAnimationFrame(() => draw(true));
-            }
-
-            seed();
-            draw(!reduce);
-            window.addEventListener('resize', () => { seed(); if (reduce) draw(false); });
-        })();
-    </script>
 </body>
 </html>

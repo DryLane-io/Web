@@ -3,624 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Dry Stack — what it is</title>
+    <title>The Dry Stack</title>
+    <script src="ink.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: #0c0d12;
-            color: rgba(230, 239, 255, 0.9);
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            min-height: 100vh;
-            padding: 48px 24px 80px;
-        }
-
-        /* Subtle drifting particle field — the calm at the eye of the storm.
-           Sits behind all content; purely decorative. */
-        #eye-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            display: block;
-        }
-
-        .wrap { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
-
-        a.back {
-            color: rgba(160, 170, 200, 0.7);
-            text-decoration: none;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        a.back:hover { color: #fff; }
-
-        h1 {
-            color: #ffffff;
-            font-family: 'Special Elite', 'Courier New', monospace;
-            font-size: 2.8rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin: 18px 0 6px;
-            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
-        }
-
-        .lede {
-            color: rgba(224, 232, 246, 0.92);
-            font-size: 1.05rem;
-            line-height: 1.75;
-            max-width: 760px;
-            margin: 14px 0 8px;
-        }
-
-        .lede strong { color: #fff; }
-
-        .sub {
-            color: rgba(190, 200, 222, 0.75);
-            font-size: 0.95rem;
-            line-height: 1.7;
-            max-width: 760px;
-            margin: 0 0 16px;
-        }
-        .sub strong { color: rgba(224, 232, 246, 0.95); }
-
-        /* ── Fusion diagram: the pitch made visual. Three glued-together systems —
-           each seam a copy, a serialize, a hop — fuse into one process. Pure CSS so it
-           reflows to a column on mobile and inherits the site's type/colour tokens.
-           Red-tinted "before" (the problem) → glowing blue "after" (the stack). */
-        .fusion {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 22px;
-            margin: 34px 0 40px;
-        }
-        .fusion .before, .fusion .after { flex: 1 1 300px; max-width: 400px; }
-
-        .fbox {
-            background: #07080c;
-            border: 1px solid rgba(255, 123, 136, 0.28);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-        }
-        .fbox-k { color: rgba(230, 239, 255, 0.92); font-size: 0.98rem; letter-spacing: 1px; font-weight: bold; }
-        .fbox-s { color: rgba(170, 182, 208, 0.7); font-size: 0.78rem; margin-top: 2px; }
-
-        /* Seam between two systems: a faint line with the three costs stamped on it. */
-        .seam {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 0;
-            position: relative;
-        }
-        .seam::before {
-            content: "";
-            position: absolute;
-            left: 50%; top: 0; bottom: 0;
-            width: 1px;
-            background: rgba(255, 123, 136, 0.35);
-            transform: translateX(-50%);
-        }
-        .seam span {
-            position: relative;
-            font-size: 0.62rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #ff7b88;
-            background: #0c0d12;
-            border: 1px solid rgba(255, 123, 136, 0.3);
-            border-radius: 4px;
-            padding: 1px 7px;
-        }
-        .before-tag {
-            margin-top: 10px;
-            text-align: center;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(255, 123, 136, 0.7);
-        }
-
-        .fuse { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .fuse-arrow { font-size: 1.8rem; line-height: 1; color: rgba(150, 200, 255, 0.9); text-shadow: 0 0 14px rgba(106, 168, 254, 0.5); }
-        .fuse-word { font-size: 0.66rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(150, 200, 255, 0.75); }
-
-        .after .abox {
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.45);
-            border-radius: 10px;
-            padding: 18px 20px;
-            box-shadow: 0 0 34px rgba(106, 168, 254, 0.16);
-        }
-        .abox-name {
-            color: #fff;
-            font-size: 1.35rem;
-            font-weight: bold;
-            letter-spacing: 3px;
-            text-shadow: 0 0 16px rgba(106, 168, 254, 0.5);
-            margin-bottom: 10px;
-        }
-        .abox-row {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            color: rgba(214, 224, 244, 0.92);
-            font-size: 0.98rem;
-            letter-spacing: 1px;
-            padding: 3px 0;
-        }
-        .abox-row .dot { width: 6px; height: 6px; border-radius: 50%; background: #8fe6b0; box-shadow: 0 0 8px rgba(143, 230, 176, 0.8); }
-        .abox-tag {
-            margin-top: 12px;
-            font-size: 0.72rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(143, 230, 176, 0.8);
-        }
-
-        @media (max-width: 768px) {
-            /* Stack cleanly: three boxes → down-arrow → unified box. Reset the row-mode
-               flex basis (which would otherwise apply to height in a column). */
-            .fusion { flex-direction: column; align-items: stretch; gap: 14px; }
-            .fusion .before, .fusion .after { flex: none; width: 100%; max-width: none; }
-            .fuse-arrow { transform: rotate(90deg); }
-        }
-
-        /* One-time assembly on scroll-into-view: fragments slide in and settle, seams
-           stamp on, arrow + unified box resolve last. Default (no .anim) is the final
-           diagram, so no-JS and reduced-motion always see it whole. */
-        @media (prefers-reduced-motion: no-preference) {
-            .fusion.anim .fbox,
-            .fusion.anim .seam,
-            .fusion.anim .before-tag,
-            .fusion.anim .fuse,
-            .fusion.anim .after {
-                opacity: 0;
-                transition: opacity 0.5s ease, transform 0.5s ease;
-            }
-            .fusion.anim .fbox  { transform: translateX(-18px); }
-            .fusion.anim .after { transform: translateX(18px); }
-            .fusion.anim .fuse  { transform: scale(0.82); }
-
-            .fusion.anim.play .fbox,
-            .fusion.anim.play .seam,
-            .fusion.anim.play .before-tag,
-            .fusion.anim.play .fuse,
-            .fusion.anim.play .after { opacity: 1; transform: none; }
-
-            /* Children of .before are all divs, so stagger by position, not type. */
-            .fusion.anim.play .before > :nth-child(1) { transition-delay: 0.00s; }  /* database */
-            .fusion.anim.play .before > :nth-child(3) { transition-delay: 0.12s; }  /* queue */
-            .fusion.anim.play .before > :nth-child(5) { transition-delay: 0.24s; }  /* serializer */
-            .fusion.anim.play .before > :nth-child(2) { transition-delay: 0.32s; }  /* seam 1 */
-            .fusion.anim.play .before > :nth-child(4) { transition-delay: 0.38s; }  /* seam 2 */
-            .fusion.anim.play .before > :nth-child(6) { transition-delay: 0.46s; }  /* before-tag */
-            .fusion.anim.play .fuse  { transition-delay: 0.54s; }
-            .fusion.anim.play .after { transition-delay: 0.66s; }
-        }
-
-        .section-label {
-            color: rgba(200, 210, 230, 0.85);
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin: 44px 0 16px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-
-        a.card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.18);
-            border-radius: 8px;
-            padding: 20px 22px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        a.card:hover {
-            border-color: rgba(106, 168, 254, 0.55);
-            box-shadow: 0 0 28px rgba(106, 168, 254, 0.18);
-            transform: translateY(-2px);
-        }
-
-        .card .name {
-            color: #ffffff;
-            font-size: 1.25rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            text-shadow: 0 0 14px rgba(106, 168, 254, 0.4);
-        }
-        .card .what {
-            color: rgba(206, 216, 236, 0.9);
-            font-size: 0.92rem;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-        .card .why {
-            color: rgba(170, 182, 208, 0.72);
-            font-size: 0.82rem;
-            line-height: 1.55;
-        }
-        .card .tag {
-            display: inline-block;
-            margin-bottom: 10px;
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(150, 200, 255, 0.85);
-            border: 1px solid rgba(106, 168, 254, 0.3);
-            border-radius: 4px;
-            padding: 2px 8px;
-        }
-
-        /* ── Demo-card mini-previews: tiny looping animations that evoke each live demo.
-           Pure CSS/SVG, no image/video assets, paused for reduced-motion. Sits atop a card. */
-        .demo-prev {
-            position: relative;
-            height: 74px;
-            margin-bottom: 14px;
-            border-radius: 6px;
-            background: #05060a;
-            border: 1px solid rgba(106, 168, 254, 0.14);
-            overflow: hidden;
-        }
-        a.card:hover .demo-prev { border-color: rgba(106, 168, 254, 0.32); }
-
-        /* Market Wall — an equaliser of ingest bars pulsing. */
-        .prev-wall { display: flex; align-items: flex-end; gap: 3px; padding: 9px 10px; }
-        .prev-wall i {
-            flex: 1; height: 100%; border-radius: 2px 2px 0 0; transform-origin: bottom; transform: scaleY(.25);
-            background: linear-gradient(180deg, rgba(106, 168, 254, 0.95), rgba(106, 168, 254, 0.2));
-            animation: wallBar 1.15s ease-in-out infinite;
-        }
-        @keyframes wallBar { 0%, 100% { transform: scaleY(.22); } 50% { transform: scaleY(1); } }
-
-        /* F1 Replay — a car lapping the circuit (SMIL animateMotion, scales with the viewBox). */
-        .prev-f1 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-        /* Replication / Relay failover — one unbroken rising line drawn through a KILL marker. */
-        .prev-fail svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-        .prev-fail .ln {
-            fill: none; stroke: #6ea8fe; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
-            stroke-dasharray: 100; stroke-dashoffset: 100; filter: drop-shadow(0 0 4px rgba(106, 168, 254, 0.6));
-            animation: failDraw 3.4s ease-in-out infinite;
-        }
-        @keyframes failDraw { 0% { stroke-dashoffset: 100; } 72%, 100% { stroke-dashoffset: 0; } }
-        .prev-fail .fail-kill {
-            position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-            font-size: 0.5rem; letter-spacing: 1px; color: rgba(255, 123, 136, 0.9);
-            background: rgba(5, 6, 10, 0.7); padding: 0 3px; border-radius: 2px;
-        }
-
-        /* Benchmarks — latency bars breathing toward their medians. */
-        .prev-bench { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 12px; }
-        .prev-bench i {
-            height: 7px; border-radius: 4px; box-shadow: 0 0 8px rgba(106, 168, 254, 0.22);
-            background: linear-gradient(90deg, rgba(106, 168, 254, 0.85), rgba(106, 168, 254, 0.25));
-            animation: benchFill 2.4s ease-in-out infinite alternate;
-        }
-        @keyframes benchFill { from { width: 24%; } to { width: 92%; } }
-
-        /* Log Viewer — log lines streaming past a fixed window. */
-        .prev-log .rows {
-            position: absolute; left: 10px; right: 10px; top: 8px;
-            display: flex; flex-direction: column; gap: 6px; animation: logScroll 3.4s linear infinite;
-        }
-        .prev-log .rows i { height: 5px; border-radius: 3px; background: rgba(150, 185, 235, 0.35); }
-        @keyframes logScroll { to { transform: translateY(-50%); } }
-
-        /* Raspberry Pi — a tiny SoC with a heartbeat ping. */
-        .prev-pi { display: flex; align-items: center; justify-content: center; }
-        .prev-pi .soc {
-            position: relative; width: 34px; height: 34px; border-radius: 5px;
-            background: #0e1730; border: 1px solid rgba(106, 168, 254, 0.5); box-shadow: 0 0 12px rgba(106, 168, 254, 0.25);
-        }
-        .prev-pi .soc::after { content: ""; position: absolute; inset: 9px; border-radius: 3px; background: rgba(106, 168, 254, 0.28); }
-        .prev-pi .ping {
-            position: absolute; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(143, 230, 176, 0.8);
-            animation: piPing 1.9s ease-out infinite;
-        }
-        @keyframes piPing { 0% { transform: scale(.7); opacity: .8; } 100% { transform: scale(2.1); opacity: 0; } }
-
-        @media (prefers-reduced-motion: reduce) {
-            .demo-prev i, .demo-prev .ln, .demo-prev .rows, .demo-prev .ping { animation: none !important; }
-            .prev-wall i { transform: scaleY(.6); }
-            .prev-bench i { width: 70%; }
-            .prev-fail .ln { stroke-dashoffset: 0; }
-        }
-
-        .foot {
-            margin-top: 56px;
-            color: rgba(190, 200, 222, 0.75);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-        .foot a {
-            color: rgba(200, 210, 230, 0.85);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(106, 168, 254, 0.3);
-        }
-        .foot a:hover { color: #fff; }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; letter-spacing: 3px; }
-            .lede { font-size: 0.95rem; }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <canvas id="eye-canvas"></canvas>
-    <div class="wrap">
+    <div class="sheet">
         <a class="back" href="index.html">&larr; back to the storm</a>
 
         <h1>The Dry Stack</h1>
-        <p class="lede">Most systems are glued together from three separate pieces: a
-            <strong>database</strong> to store data, a <strong>message queue</strong> to move it,
-            and a <strong>serializer</strong> to pack it on the wire. Every seam between them is a
-            copy, a serialization pass, and a point of latency.</p>
-        <p class="lede"><strong>Drylane is all three, fused into one stack that runs on a single
-            box</strong> &mdash; ingesting <strong>tens of millions of records a second</strong> and answering
-            queries in <strong>microseconds</strong>. No cluster required to be fast.</p>
+        <p class="tagline">Database, queue and serializer in one process. Answers in microseconds.</p>
+        <p class="lede">Most backends are three systems taped together: a <strong>database</strong>
+            to store data, a <strong>message queue</strong> to move it and a <strong>serializer</strong>
+            to put it on the wire. Every seam costs a copy, a serialization pass and a network hop.
+            <strong>The Dry Stack removes the seams.</strong> One process on one box ingests
+            <strong>tens of millions of records a second</strong>, and you don't need a cluster to be fast.</p>
 
-        <div class="fusion" aria-label="Three separate systems — a database, a message queue and a serializer, with a copy, a serialize and a hop at every seam — fused into one Drylane process">
+        <div class="fusion" data-reveal aria-label="A database, a message queue and a serializer, with a copy, a serialization and a hop at every seam, fused into the Dry Stack, one process">
             <div class="before">
-                <div class="fbox">
+                <div class="fbox" data-ink="box" style="--d:0s">
                     <span class="fbox-k">Database</span>
                     <span class="fbox-s">store the data</span>
                 </div>
-                <div class="seam"><span>copy</span><span>serialize</span><span>hop</span></div>
-                <div class="fbox">
+                <div class="seam"><svg viewBox="0 0 4 38" preserveAspectRatio="none"><path class="pen" style="--d:.5s" d="M2 0 L2 38"/></svg><span class="note" style="--d:.6s">copy, serialize, hop</span></div>
+                <div class="fbox" data-ink="box" style="--d:.2s">
                     <span class="fbox-k">Message Queue</span>
                     <span class="fbox-s">move the data</span>
                 </div>
-                <div class="seam"><span>copy</span><span>serialize</span><span>hop</span></div>
-                <div class="fbox">
+                <div class="seam"><svg viewBox="0 0 4 38" preserveAspectRatio="none"><path class="pen" style="--d:.7s" d="M2 0 L2 38"/></svg><span class="note" style="--d:.8s">copy, serialize, hop</span></div>
+                <div class="fbox" data-ink="box" style="--d:.4s">
                     <span class="fbox-k">Serializer</span>
                     <span class="fbox-s">pack the data</span>
                 </div>
-                <div class="before-tag">three systems &middot; glue at every seam</div>
+                <div class="before-tag note" style="--d:1s">three systems, glued at every seam</div>
             </div>
 
             <div class="fuse">
-                <div class="fuse-arrow">&rarr;</div>
-                <div class="fuse-word">fused</div>
+                <svg viewBox="0 0 84 34"><path class="pen" style="--d:1.3s" d="M4 19 C 24 13, 48 22, 74 16"/><path class="pen" style="--d:1.75s" d="M63 8 L75 16 L64 25"/></svg>
+                <span class="note" style="--d:1.6s">fused</span>
             </div>
 
             <div class="after">
-                <div class="abox">
-                    <div class="abox-name">DRYLANE</div>
-                    <div class="abox-row"><span class="dot"></span>store</div>
-                    <div class="abox-row"><span class="dot"></span>stream</div>
-                    <div class="abox-row"><span class="dot"></span>serialize</div>
-                    <div class="abox-tag">one process &middot; zero copies &middot; no hops</div>
+                <div class="abox" data-ink="box2" style="--d:1.9s">
+                    <div class="abox-name">DRY STACK</div>
+                    <div class="abox-row"><svg viewBox="0 0 14 14"><path class="pen" style="--d:2.5s" d="M1 8 L5 12 L13 2"/></svg>store</div>
+                    <div class="abox-row"><svg viewBox="0 0 14 14"><path class="pen" style="--d:2.65s" d="M1 8 L5 12 L13 2"/></svg>stream</div>
+                    <div class="abox-row"><svg viewBox="0 0 14 14"><path class="pen" style="--d:2.8s" d="M1 8 L5 12 L13 2"/></svg>serialize</div>
+                    <div class="abox-tag note" style="--d:3s">one process, zero copies, no hops</div>
                 </div>
             </div>
         </div>
-        <script>
-            // Arm the assembly animation synchronously (before paint, so no flash), then
-            // release it once the diagram scrolls into view. Skipped entirely for
-            // reduced-motion — the diagram just stays in its final state.
-            (() => {
-                const fusion = document.currentScript.previousElementSibling;
-                if (!fusion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-                fusion.classList.add('anim');
-                let played = false;
-                const play = () => { if (played) return; played = true; fusion.classList.add('play'); };
-                if ('IntersectionObserver' in window) {
-                    const io = new IntersectionObserver((entries) => {
-                        if (entries[0].isIntersecting) { play(); io.disconnect(); }
-                    }, { threshold: 0.25 });
-                    io.observe(fusion);
-                }
-                // Safety net: never leave the diagram hidden if the observer never fires.
-                setTimeout(play, 1200);
-            })();
-        </script>
 
-        <p class="sub">Runs on <strong>Windows</strong> and <strong>Linux</strong>, tuned down to the
-            SIMD for <strong>Intel</strong>, <strong>AMD</strong> and <strong>ARM</strong> &mdash; the
-            same engine from a server rack to a Raspberry&nbsp;Pi.</p>
-        <p class="sub">The core is <strong>C++</strong>, with idiomatic <strong>C#</strong> wrappers on
-            top &mdash; write your app in C# and get native, zero-copy speed underneath, no glue code
-            to maintain.</p>
-        <p class="sub">Everything below is running live. Click any card &mdash; the demos are real
-            engines serving real queries, not screenshots.</p>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Measured against the field</span></div>
+        <div class="proof">
+            <a class="tile" href="facts.html" data-ink="box" data-reveal>
+                <span class="big">8.7&times;</span>
+                <span class="lbl">DuckDB's ingest rate. We ran on 1 core, DuckDB got 32.</span>
+            </a>
+            <a class="tile" href="relay.html" data-ink="box" data-reveal>
+                <span class="big">35&times;</span>
+                <span class="lbl">faster history replay than NATS JetStream, on the same box.</span>
+            </a>
+            <a class="tile" href="nio.html" data-ink="box" data-reveal>
+                <span class="big">16&nbsp;&micro;s</span>
+                <span class="lbl">round-trip where gRPC takes 179&nbsp;&micro;s. Same machine, same messages.</span>
+            </a>
+            <a class="tile" href="zao.html" data-ink="box" data-reveal>
+                <span class="big">0.87&nbsp;ns</span>
+                <span class="lbl">to serialize a 16-byte message, with zero allocations.</span>
+            </a>
+        </div>
+        <p class="proof-note">Rivals get their fastest settings and every core. Medians from an open
+            harness, and the losses are published too: Facts stores 3.8&times; more bytes per point
+            than DuckDB, because it keeps columns raw for speed. Click a number for the full table.</p>
 
-        <div class="section-label">The three pieces</div>
+        <a class="breakit" href="https://chaos.drylane.io" data-ink="boxr" data-reveal>
+            <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                <path class="s r dash fade" style="--d:.1s" d="M100 4 V72"/>
+                <text x="106" y="14" class="fade" style="--d:.2s">kill</text>
+                <path class="s b pen" style="--d:.3s" d="M6 66 L42 57 L72 52 L100 42 L130 32 L166 20 L194 10"/>
+            </svg>
+            <span class="breakit-text">
+                <span class="breakit-h">Kill the leader yourself</span>
+                <span class="breakit-p">A two-node cluster is running right now. Cut the link, force a
+                    failover and watch it heal. A stale node can't win an election, so you never get
+                    two leaders.</span>
+                <span class="note breakit-go">open the failover demo &rarr;</span>
+            </span>
+        </a>
+
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Platforms</dt>
+            <dd><strong>Windows</strong> and <strong>Linux</strong>. SIMD-tuned for <strong>Intel</strong>,
+                <strong>AMD</strong> and <strong>ARM</strong>, from a server rack down to a Raspberry&nbsp;Pi.</dd>
+            <dt>Languages</dt>
+            <dd>A <strong>C++</strong> core with idiomatic <strong>C#</strong> on top. Native, zero-copy
+                speed and no glue code to maintain.</dd>
+            <dt>Demos</dt>
+            <dd>Every demo below is a <strong>live</strong> engine answering real queries.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>What's inside</span></div>
+        <div class="grid four">
+            <a class="card" href="facts.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Facts</span></span>
+                <div class="what">Time-series storage. SIMD queries over billions of records, inside
+                    your process.</div>
+                <div class="why">Latest value in 0.2&nbsp;&micro;s. DuckDB takes 4.3&nbsp;ms. Replaces
+                    InfluxDB or Timescale on one box.</div>
+            </a>
+            <a class="card" href="nio.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Nio</span></span>
+                <div class="what">Zero-copy networking. Tens of millions of messages a second on one
+                    connection.</div>
+                <div class="why">206M&nbsp;msg/s across 64 connections on 12 threads, with no locks.</div>
+            </a>
+            <a class="card" href="zao.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Zao</span></span>
+                <div class="what">Serialization at memcpy speed. Tiered codegen picks the fastest path
+                    for each type.</div>
+                <div class="why">1.4 to 3.6&times; ahead of MemoryPack. Protobuf is orders of
+                    magnitude behind.</div>
+            </a>
+            <a class="card" href="relay.html" data-ink="box" data-reveal>
+                <span class="tag new note">plus</span>
+                <span class="name-line"><span class="name">Relay</span></span>
+                <div class="what">Durable pub/sub built from the three. Nio moves the bytes and Facts
+                    holds the log, so the log is the broker.</div>
+                <div class="why">About 4M&nbsp;msg/s persisted. JetStream manages 0.15M.</div>
+            </a>
+        </div>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>See it live</span></div>
         <div class="grid">
-            <a class="card" href="facts.html">
-                <div class="name">Facts</div>
-                <div class="what">A time-series store that answers in microseconds &mdash; SIMD query
-                    surfaces over billions of records.</div>
-                <div class="why">Replaces the database. Where you'd reach for InfluxDB or
-                    Timescale, on one box, far faster.</div>
+            <a class="card" href="https://api.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <path class="s pen" style="--d:.2s" d="M8 6 V70"/>
+                    <rect class="hatch fade" style="--d:.9s" x="8" y="14" width="150" height="11"/>
+                    <rect class="hatch fade" style="--d:1s" x="8" y="33" width="96" height="11"/>
+                    <rect class="hatch fade" style="--d:1.1s" x="8" y="52" width="44" height="11"/>
+                    <path class="s b pen" style="--d:.3s" d="M8 14 H158 V25 H8"/>
+                    <path class="s b pen" style="--d:.45s" d="M8 33 H104 V44 H8"/>
+                    <path class="s b pen" style="--d:.6s" d="M8 52 H52 V63 H8"/>
+                    <text x="62" y="62" class="fade" style="--d:1.2s;fill:var(--blue)">median µs</text>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">Benchmarks</span></span>
+                <div class="what">The full query suite running on the box. Every API with its median
+                    and p99 latency, straight from the engine.</div>
             </a>
-            <a class="card" href="nio.html">
-                <div class="name">Nio</div>
-                <div class="what">The zero-copy network layer &mdash; hundreds of millions of
-                    messages/second, low-microsecond round-trips over loopback.</div>
-                <div class="why">Replaces the message queue. Where you'd reach for Kafka, without
-                    the copies and the hops.</div>
+            <a class="card" href="https://live.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <path class="s pen" style="--d:.2s" d="M4 68 H196"/>
+                    <path class="s b pen" style="--d:.35s" d="M8 68 V46 H20 V32 H32 V52 H44 V24 H56 V40 H68 V18 H80 V36 H92 V28 H104 V48 H116 V20 H128 V38 H140 V30 H152 V50 H164 V26 H176 V42 H188 V68"/>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">Market Wall</span></span>
+                <div class="what">A command-center wall ingesting synthetic market data while queries
+                    hit the stream nonstop.</div>
             </a>
-            <a class="card" href="zao.html">
-                <div class="name">Zao</div>
-                <div class="what">Serialization at memcpy speed &mdash; tiered codegen reaching
-                    tens of GB/s on the fast path.</div>
-                <div class="why">Replaces the serializer. Where you'd reach for Protobuf, at the
-                    speed of a raw memory copy.</div>
+            <a class="card" href="https://f1.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <path class="s pen" style="--d:.2s" d="M40 40 C 40 12, 150 8, 166 26 C 182 44, 150 70, 100 66 C 70 64, 60 56, 50 60 C 40 64, 40 52, 40 40 Z"/>
+                    <path class="s r pen" style="--d:.9s" d="M36 34 L46 34"/>
+                    <circle class="fade" style="--d:1.1s;fill:var(--green)" cx="166" cy="26" r="4"/>
+                    <text x="134" y="74" class="fade" style="--d:1.2s;fill:var(--green)">lap 23</text>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">F1 Replay</span></span>
+                <div class="what">One real Formula 1 race, ingested once and replayed. Point-in-time
+                    lookups and whole-race aggregates in microseconds.</div>
+            </a>
+            <a class="card" href="https://relay.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <path class="s r dash fade" style="--d:.1s" d="M100 4 V72"/>
+                    <text x="106" y="70" class="fade" style="--d:.2s">kill leader</text>
+                    <path class="s g pen" style="--d:.3s" d="M6 68 H22 V60 H38 V52 H54 V44 H70 V36 H86 V28 H102 V20 H118 V12 H134"/>
+                    <text x="140" y="16" class="fade" style="--d:1s;fill:var(--green)">no gaps</text>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">Relay rides a failover</span></span>
+                <div class="what">Kill the leader while a consumer reads. The counter keeps climbing
+                    with zero gaps, zero duplicates and no reconnect.</div>
+                <div class="why">A durable subject is a replicated stream, so failover happens in the
+                    storage layer and the consumer never sees it.</div>
+            </a>
+            <a class="card" href="https://log.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <path class="s pen" style="--d:.2s" d="M8 10 q20 -3 40 0 t40 0 t40 0 t30 0"/>
+                    <path class="s pen" style="--d:.35s" d="M8 24 q20 -3 40 0 t40 0 t20 0"/>
+                    <path class="s pen" style="--d:.5s" d="M8 38 q20 -3 40 0 t40 0 t40 0 t44 0"/>
+                    <path class="s pen" style="--d:.65s" d="M8 52 q20 -3 40 0 t30 0"/>
+                    <path class="s b pen" style="--d:.8s" d="M8 66 q20 -3 40 0 t40 0 t40 0"/>
+                    <text x="140" y="70" class="fade" style="--d:1.2s;fill:var(--blue)">&larr; live tail</text>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">Log Viewer</span></span>
+                <div class="what">Scroll a huge live log. Only the visible window is read, including
+                    the unsealed tail.</div>
+            </a>
+            <a class="card" href="https://pi.drylane.io" data-ink="box" data-reveal>
+                <svg class="sketch" viewBox="0 0 200 76" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+                    <rect class="s pen" style="--d:.2s" x="80" y="16" width="40" height="40" rx="3"/>
+                    <rect class="hatch fade" style="--d:.9s" x="90" y="26" width="20" height="20"/>
+                    <path class="s pen" style="--d:.6s" d="M74 24 H80 M74 32 H80 M74 40 H80 M74 48 H80 M120 24 H126 M120 32 H126 M120 40 H126 M120 48 H126"/>
+                    <text x="134" y="40" class="fade" style="--d:1.1s;fill:var(--green)">$35</text>
+                </svg>
+                <span class="tag note">live demo &rarr;</span>
+                <span class="name-line"><span class="name">Raspberry Pi</span></span>
+                <div class="what">The same engine on a $35 ARM board, small enough to run where the
+                    data is born.</div>
             </a>
         </div>
 
-        <div class="section-label">Built on the stack</div>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Go deeper</span></div>
         <div class="grid">
-            <a class="card" href="relay.html">
-                <div class="tag">new</div>
-                <div class="name">Relay</div>
-                <div class="what">Durable pub/sub composed from the three &mdash; Nio moves the bytes,
-                    Facts is the log they live in. Publish is an append; replay runs at 50M&nbsp;msg/s,
-                    delivery in microseconds.</div>
-                <div class="why">Not a fourth box &mdash; an extension of the stack. Messaging where
-                    the log itself is the broker, so history reads at engine speed.</div>
+            <a class="card" href="code.html" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Code &amp; usage</span></span>
+                <div class="what">Real C# from the samples: open a store and query it, send messages,
+                    serialize a struct. Plus a look at the C++ core.</div>
             </a>
+            <a class="card" href="dry-stack.pdf" data-ink="box" data-reveal>
+                <span class="name-line"><span class="name">Technical overview (PDF)</span></span>
+                <div class="what">Six printable pages with the full argument and every benchmark. Hand
+                    it to your favourite model and let it check the maths.</div>
+            </a>
+        </div>
+        <p class="sub" style="margin-top:var(--g);">The PDF is A4. Also available in
+            <a href="dry-stack-letter.pdf">US&nbsp;Letter</a>.</p>
+
+        <div class="contact" data-ink="box2" data-reveal>
+            <span class="contact-h">Want it in your system?</span>
+            <p>The Dry Stack isn't public yet. If you run something where these numbers matter, tell us
+                what you'd build and we'll talk.</p>
+            <a class="contact-mail" href="mailto:info@drylane.io">info@drylane.io</a>
         </div>
 
-        <div class="section-label">See it live</div>
-        <div class="grid">
-            <a class="card" href="https://api.drylane.io">
-                <div class="demo-prev prev-bench" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-1.6s"></i></div>
-                <div class="tag">live demo</div>
-                <div class="name">Benchmarks</div>
-                <div class="what">The full query benchmark suite, run live on the box &mdash; every API
-                    surface with its median and p99 latency, straight from the engine.</div>
-            </a>
-            <a class="card" href="https://live.drylane.io">
-                <div class="demo-prev prev-wall" aria-hidden="true"><i style="animation-delay:-.05s"></i><i style="animation-delay:-.5s"></i><i style="animation-delay:-.9s"></i><i style="animation-delay:-.2s"></i><i style="animation-delay:-.7s"></i><i style="animation-delay:-1.05s"></i><i style="animation-delay:-.35s"></i><i style="animation-delay:-.6s"></i><i style="animation-delay:-.15s"></i><i style="animation-delay:-.8s"></i><i style="animation-delay:-.45s"></i><i style="animation-delay:-.95s"></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.65s"></i></div>
-                <div class="tag">live demo</div>
-                <div class="name">Market Wall</div>
-                <div class="what">A live command-center wall ingesting synthetic market data, with
-                    queries running continuously against the stream.</div>
-            </a>
-            <a class="card" href="https://f1.drylane.io">
-                <div class="demo-prev prev-f1" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="xMidYMid meet"><ellipse cx="100" cy="37" rx="62" ry="20" fill="none" stroke="rgba(106,168,254,.35)" stroke-width="2" stroke-dasharray="4 5"/><circle r="4" fill="#8fe6b0"><animateMotion dur="2.6s" repeatCount="indefinite" path="M 38 37 A 62 20 0 1 1 162 37 A 62 20 0 1 1 38 37"/></circle></svg></div>
-                <div class="tag">live demo</div>
-                <div class="name">F1 Replay</div>
-                <div class="what">A real Formula 1 race ingested once, then replayed and queried
-                    &mdash; point-in-time and whole-race aggregates in microseconds.</div>
-            </a>
-            <a class="card" href="https://chaos.drylane.io">
-                <div class="demo-prev prev-fail" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="none"><line x1="100" y1="6" x2="100" y2="68" stroke="rgba(255,123,136,.5)" stroke-width="1.5" stroke-dasharray="3 3"/><path class="ln" pathLength="100" d="M 6 64 L 42 55 L 72 51 L 100 41 L 130 31 L 166 19 L 194 10"/></svg><span class="fail-kill">KILL</span></div>
-                <div class="tag">live demo</div>
-                <div class="name">Replication &amp; Failover</div>
-                <div class="what">A two-node cluster you can break on purpose: cut the link, force a
-                    failover, watch it heal &mdash; no split-brain, bounded loss.</div>
-                <div class="why">Epoch-based async replication with veto failover &mdash; a stale node
-                    can't win an election, so two leaders can never exist.</div>
-            </a>
-            <a class="card" href="https://relay.drylane.io">
-                <div class="demo-prev prev-fail" aria-hidden="true"><svg viewBox="0 0 200 74" preserveAspectRatio="none"><line x1="100" y1="6" x2="100" y2="68" stroke="rgba(255,123,136,.5)" stroke-width="1.5" stroke-dasharray="3 3"/><path class="ln" pathLength="100" d="M 6 64 L 42 55 L 72 51 L 100 41 L 130 31 L 166 19 L 194 10"/></svg><span class="fail-kill">KILL</span></div>
-                <div class="tag">live demo</div>
-                <div class="name">Relay rides a failover</div>
-                <div class="what">Kill the leader and watch a messaging consumer keep delivering &mdash;
-                    the counter climbs straight through, zero gaps, zero duplicates, no reconnect.</div>
-                <div class="why">A durable subject <em>is</em> a replicated stream, so failover comes
-                    from the storage layer &mdash; the consumer never notices.</div>
-            </a>
-            <a class="card" href="https://log.drylane.io">
-                <div class="demo-prev prev-log" aria-hidden="true"><div class="rows"><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i><i style="width:80%"></i><i style="width:55%"></i><i style="width:90%"></i><i style="width:42%"></i><i style="width:70%"></i><i style="width:60%"></i><i style="width:85%"></i><i style="width:50%"></i></div></div>
-                <div class="tag">live demo</div>
-                <div class="name">Log Viewer</div>
-                <div class="what">A virtualized browser over a huge live log &mdash; only the visible
-                    window is read, including the unsealed tail.</div>
-            </a>
-            <a class="card" href="https://pi.drylane.io">
-                <div class="demo-prev prev-pi" aria-hidden="true"><span class="ping"></span><span class="soc"></span></div>
-                <div class="tag">live demo</div>
-                <div class="name">Raspberry Pi</div>
-                <div class="what">The same engine on a $35 ARM board &mdash; the stack is small enough
-                    to run where the data is born.</div>
-            </a>
-        </div>
-
-        <div class="section-label">Write the code</div>
-        <div class="grid">
-            <a class="card" href="code.html">
-                <div class="name">Code &amp; usage</div>
-                <div class="what">Real C# snippets &mdash; open a store and query it, send messages,
-                    serialize a struct &mdash; plus a peek at the C++ core, straight from the samples.</div>
-            </a>
-        </div>
-
-        <div class="section-label">Read the whole argument</div>
-        <div class="grid">
-            <a class="card" href="dry-stack.pdf">
-                <div class="name">Technical overview &mdash; PDF</div>
-                <div class="what">The full case for optimization, every benchmark, in one shareable,
-                    printable document &mdash; six pages. Feed it to your favourite model and interrogate
-                    it; the numbers hold up.</div>
-            </a>
-        </div>
-        <p class="sub" style="margin-top:12px;">Page size:
-            <a href="dry-stack.pdf" style="color:rgba(200,210,230,0.9);border-bottom:1px solid rgba(106,168,254,0.4);text-decoration:none;">A4</a>
-            &middot;
-            <a href="dry-stack-letter.pdf" style="color:rgba(200,210,230,0.9);border-bottom:1px solid rgba(106,168,254,0.4);text-decoration:none;">US&nbsp;Letter</a>.</p>
-
-        <div class="foot">
-            Want to talk, build on it, or just kick the tires?
-            <a href="mailto:info@drylane.io">info@drylane.io</a>
-            &middot; <a href="about.html">About</a>
-        </div>
+        <div class="foot">The Dry Stack is built by Drylane. <a href="about.html">More about Drylane</a>.</div>
     </div>
 
-    <script>
-        // Eye-of-the-storm ambience: a sparse field of faint particles drifting in a
-        // slow swirl. Decorative only; pauses for prefers-reduced-motion.
-        (() => {
-            const canvas = document.getElementById('eye-canvas');
-            const ctx = canvas.getContext('2d');
-            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            let w, h, cx, cy, particles;
-
-            function seed() {
-                w = canvas.width = window.innerWidth;
-                h = canvas.height = window.innerHeight;
-                cx = w / 2; cy = h / 2;
-                const count = Math.min(280, Math.floor(w * h / 7000));
-                particles = [];
-                for (let i = 0; i < count; i++) {
-                    particles.push({
-                        x: Math.random() * w,
-                        y: Math.random() * h,
-                        r: Math.random() * 1.4 + 0.4,
-                        a: Math.random() * 0.35 + 0.06,
-                        drift: Math.random() * 0.0006 + 0.0002,   // angular speed (swirl)
-                        vy: Math.random() * 0.12 + 0.03            // gentle upward drift
-                    });
-                }
-            }
-
-            function draw(animate) {
-                ctx.clearRect(0, 0, w, h);
-                for (const p of particles) {
-                    if (animate) {
-                        // slow rotation about the centre — the calm swirl of the eye
-                        const dx = p.x - cx, dy = p.y - cy;
-                        const cos = Math.cos(p.drift), sin = Math.sin(p.drift);
-                        p.x = cx + dx * cos - dy * sin;
-                        p.y = cy + dx * sin + dy * cos - p.vy;
-                        if (p.y < -5) p.y = h + 5;
-                        if (p.x < -5) p.x = w + 5; else if (p.x > w + 5) p.x = -5;
-                    }
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(150, 185, 235, ' + p.a + ')';
-                    ctx.fill();
-                }
-                if (animate) requestAnimationFrame(() => draw(true));
-            }
-
-            seed();
-            draw(!reduce);
-            window.addEventListener('resize', () => { seed(); if (reduce) draw(false); });
-        })();
-    </script>
 </body>
 </html>

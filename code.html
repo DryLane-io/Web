@@ -3,119 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code &amp; usage — The Dry Stack</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: #0c0d12;
-            color: rgba(230, 239, 255, 0.9);
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            min-height: 100vh;
-            padding: 48px 24px 80px;
-        }
-
-        .wrap { max-width: 920px; margin: 0 auto; }
-
-        a.back {
-            color: rgba(160, 170, 200, 0.7);
-            text-decoration: none;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        a.back:hover { color: #fff; }
-
-        h1 {
-            color: #ffffff;
-            font-size: 2.8rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin: 18px 0 6px;
-            text-shadow: 0 0 20px rgba(106, 168, 254, 0.35);
-        }
-
-        .tagline {
-            color: rgba(224, 232, 246, 0.92);
-            font-size: 1.05rem;
-            line-height: 1.7;
-            max-width: 760px;
-            margin: 12px 0 8px;
-        }
-        .tagline strong { color: #fff; }
-
-        .section-label {
-            color: rgba(200, 210, 230, 0.85);
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin: 44px 0 6px;
-        }
-        .blurb {
-            color: rgba(190, 200, 222, 0.78);
-            font-size: 0.92rem;
-            line-height: 1.6;
-            max-width: 760px;
-            margin: 0 0 14px;
-        }
-
-        pre.code {
-            background: #07080c;
-            border: 1px solid rgba(106, 168, 254, 0.18);
-            border-radius: 8px;
-            padding: 18px 20px;
-            font-family: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-            font-size: 0.86rem;
-            font-weight: 300;
-            line-height: 1.62;
-            color: rgba(224, 232, 246, 0.92);
-            overflow-x: auto;
-            white-space: pre;
-        }
-        pre.code .c { color: rgba(130, 150, 180, 0.75); }   /* comments */
-        pre.code .k { color: #cfe0ff; }                      /* keywords / emphasis */
-
-        .lang {
-            display: inline-block;
-            margin-left: 10px;
-            font-size: 0.66rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(150, 200, 255, 0.85);
-            border: 1px solid rgba(106, 168, 254, 0.3);
-            border-radius: 4px;
-            padding: 2px 8px;
-            vertical-align: middle;
-        }
-
-        .foot {
-            margin-top: 52px;
-            color: rgba(190, 200, 222, 0.75);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-        .foot a { color: rgba(200, 210, 230, 0.85); text-decoration: none; border-bottom: 1px solid rgba(106, 168, 254, 0.3); }
-        .foot a:hover { color: #fff; }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; letter-spacing: 3px; }
-            pre.code { font-size: 0.76rem; }
-        }
-    </style>
+    <title>Code, the Dry Stack in use</title>
+    <script src="ink.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <div class="wrap">
-        <a class="back" href="stack.html">&larr; The Dry Stack</a>
+    <div class="sheet">
+        <a class="back" href="stack.html">&larr; the Dry Stack</a>
 
         <h1>Code</h1>
-        <p class="tagline">The core is <strong>C++</strong>; you write your app in <strong>C#</strong>
-            against thin, zero-copy wrappers. Every snippet below is lifted straight from the
-            repo's samples &mdash; real API, not pseudo-code.</p>
+        <p class="tagline">A C++ core with thin, zero-copy C# on top. Every snippet is lifted from the
+            repo's samples.</p>
+        <p class="lede">Real API, not pseudo-code. You write your app in <strong>C#</strong> and get the
+            native engine underneath, with nothing to glue together.</p>
 
-        <div class="section-label">Facts &mdash; store &amp; query<span class="lang">C#</span></div>
-        <p class="blurb">Open a shard, batch-ingest a column, then run a SIMD scan and an aggregate &mdash;
-            answers come back in microseconds.</p>
-        <pre class="code"><span class="c">// from tests/Facts.Smoke</span>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Facts: store and query<span class="lang">C#</span></span></div>
+        <p class="sub">Open a shard, batch-ingest a column, then run a SIMD scan and an aggregate. Answers
+            come back in microseconds.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code"><span class="c">// from tests/Facts.Smoke</span>
 using Dry.Facts;
 
 Facts.LoadNative();
@@ -141,12 +49,12 @@ var cols = new ulong[16384];
 uint hits = rdr.ScanValueF64(col: 0, CmpOp.Gt, 32700.0, 0, ulong.MaxValue, recs, default, cols);
 
 ColStats st = rdr.AggValue(col: 0, 0, ulong.MaxValue);
-Console.WriteLine($"{hits} hits, mean={st.Mean:F2}, max={st.Max}");</pre>
+Console.WriteLine($"{hits} hits, mean={st.Mean:F2}, max={st.Max}");</pre></div>
 
-        <div class="section-label">Nio &mdash; messaging<span class="lang">C#</span></div>
-        <p class="blurb">A request/response server and client. The blocking round-trip is ~6&micro;s on
-            loopback; batched events go out with no per-message copies.</p>
-        <pre class="code"><span class="c">// from samples/Example</span>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Nio: messaging<span class="lang">C#</span></span></div>
+        <p class="sub">A request/response server and client. The blocking round-trip is about 6&nbsp;&micro;s
+            on loopback, and batched events go out with no per-message copies.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code"><span class="c">// from samples/Example</span>
 NioUnsafe.Init(partitionCount: 8, cqSize: 1024);
 
 <span class="c">// Server: answer PING with PONG.</span>
@@ -166,13 +74,12 @@ var reply = client.Query(TYPE_PING, ping);   <span class="c">// reply.TypeId == 
 <span class="c">// Fire millions of events with zero copies by batching into the TX slot.</span>
 using (var batch = client.BeginBatch())
     for (int i = 0; i &lt; 32_000; i++)
-        batch.SendEvent(TYPE_EVENT, payload);</pre>
+        batch.SendEvent(TYPE_EVENT, payload);</pre></div>
 
-        <div class="section-label">File transfer &mdash; an app on Nio<span class="lang">C#</span></div>
-        <p class="blurb">What you build on top: a full file &amp; directory transfer server and client &mdash;
-            list, upload, download whole trees &mdash; is a thin layer over Nio. This is essentially the
-            whole thing.</p>
-        <pre class="code"><span class="c">// from samples/FtServer + samples/FtClient</span>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>File transfer, an app on Nio<span class="lang">C#</span></span></div>
+        <p class="sub">What you build on top: a full file and directory transfer server and client (list,
+            upload, download whole trees) is a thin layer over Nio. This is nearly all of it.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code"><span class="c">// from samples/FtServer + samples/FtClient</span>
 using Dry.Nio;
 using Dry.FileTransfer;
 
@@ -184,23 +91,23 @@ server.OnTransferComplete = path =&gt; Console.WriteLine($"[sent] {path}");
 server.Listen("127.0.0.1", 22100, rootPath: "ftroot");
 server.Start();
 
-<span class="c">// Client: connect, then pull a file — or a whole tree.</span>
+<span class="c">// Client: connect, then pull a file or a whole tree.</span>
 using var client = new FileTransferClient(partitionId: 0);
 client.Connect("127.0.0.1", 22100);
 
 var r = client.Download("large.bin", "local.bin", overwrite: true);
 Console.WriteLine($"{r.BytesReceived} bytes  success={r.Success}");
 
-client.UploadDirectory("demo_docs", "uploads/docs", overwrite: true);</pre>
+client.UploadDirectory("demo_docs", "uploads/docs", overwrite: true);</pre></div>
 
-        <div class="section-label">Zao &mdash; serialize<span class="lang">C#</span></div>
-        <p class="blurb">Tag a struct with <span style="color:#cfe0ff;">[WireType]</span>; the source generator
-            emits <code>WriteTo</code> / <code>ReadFrom</code> / <code>MaxSize</code> at build time. Blittable
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Zao: serialize<span class="lang">C#</span></span></div>
+        <p class="sub">Tag a struct with <code>[WireType]</code> and the source generator emits
+            <code>WriteTo</code>, <code>ReadFrom</code> and <code>MaxSize</code> at build time. Blittable
             types serialize at memcpy speed.</p>
-        <pre class="code"><span class="c">// from samples/Example2</span>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code"><span class="c">// from samples/Example2</span>
 using Dry.Zao;
 
-<span class="c">// Declare a wire type — codegen does the rest, no reflection at runtime.</span>
+<span class="c">// Declare a wire type. Codegen does the rest, no reflection at runtime.</span>
 [WireType(0x01)]
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public partial struct PlayerMoved
@@ -215,12 +122,12 @@ byte[] buf = new byte[PlayerMoved.MaxSize];
 int n = msg.WriteTo(buf);                       <span class="c">// serialize  (tier-0: pure memcpy)</span>
 PlayerMoved back = PlayerMoved.ReadFrom(buf);   <span class="c">// deserialize</span>
 
-<span class="c">// Richer shapes just work too — strings, arrays, List&lt;T&gt;, Dictionary&lt;K,V&gt;.</span></pre>
+<span class="c">// Richer shapes work too: strings, arrays, List&lt;T&gt;, Dictionary&lt;K,V&gt;.</span></pre></div>
 
-        <div class="section-label">Facts &mdash; the native core<span class="lang">C++</span></div>
-        <p class="blurb">The same engine underneath the C# wrapper. The C ABI is what every language binds
-            to; this is the Linux bring-up smoke test.</p>
-        <pre class="code"><span class="c">// from src/factslib/linux_smoke.cpp</span>
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Facts: the native core<span class="lang">C++</span></span></div>
+        <p class="sub">The same engine under the C# wrapper. Every language binds to this C ABI; this is
+            the Linux bring-up smoke test.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code"><span class="c">// from src/factslib/linux_smoke.cpp</span>
 #include "facts_db_capi.h"
 
 ColumnDesc cols[1] = {};  cols[0].type = ColumnType::F64;
@@ -238,11 +145,16 @@ facts_db_flush(db);
 
 facts_reader_t* rd = facts_db_reader_for(db, 0);
 uint32_t got = facts_reader_scan_value(rd, <span class="c">/*col*/</span> 0, <span class="c">/*Gt*/</span> 1, f64_bits(0.0),
-                                       0, UINT64_MAX, recs, pay, paycap, colv, reccap);</pre>
+                                       0, UINT64_MAX, recs, pay, paycap, colv, reccap);</pre></div>
 
-        <div class="foot">
-            Want the full samples, or to build against it? <a href="mailto:info@drylane.io">info@drylane.io</a>
+        <div class="contact" data-ink="box2" data-reveal>
+            <span class="contact-h">Want to build against it?</span>
+            <p>The Dry Stack isn't public yet. Ask for the full samples and tell us what you'd build.</p>
+            <a class="contact-mail" href="mailto:info@drylane.io">info@drylane.io</a>
         </div>
+
+        <div class="foot">Part of <a href="stack.html">the Dry Stack</a>, built by
+            <a href="about.html">Drylane</a>.</div>
     </div>
 </body>
 </html>
