@@ -188,8 +188,7 @@ node.Start();
                 wear out an SSD.</li>
             <li><strong>CPU quotas need backoff.</strong> Under a systemd or container CPU limit,
                 spinning loops get throttled in bulk, heartbeats included, and a healthy leader looks
-                dead. We hit exactly this on our own relay demo: with backoff on it went from
-                <strong>6 cores to about 0.6</strong>, with no false failovers since.</li>
+                dead.</li>
             <li><strong>io_uring memory.</strong> On Linux each Nio partition locks a little memory.
                 With many partitions, raise the limit (<code>LimitMEMLOCK=infinity</code> in the
                 systemd unit).</li>
