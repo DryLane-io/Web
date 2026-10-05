@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup and config, the Dry Stack</title>
+    <script src="ink.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="site.css">
+    <style>
+        .grp { font-family: var(--hand); font-size: 24px; font-weight: 600; color: var(--blue); margin: calc(var(--g) * 2) 0 calc(var(--g) * -1.6); }
+        .codebox + .sub { margin-top: var(--g); }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <a class="back" href="stack.html">&larr; the Dry Stack</a>
+
+        <h1>Setup and config</h1>
+        <p class="tagline">One process, a handful of settings, nothing else to run.</p>
+        <p class="lede">The Dry Stack is a library, not a server farm. You reference it from your
+            <strong>C#</strong> app and open a database in a directory. There is no broker, no
+            cluster manager and no config file. Every setting is a plain field in code, with its
+            default written next to it.</p>
+        <p class="sub">The names and defaults below come straight from the source. If a setting isn't
+            here, you probably don't need to touch it.</p>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>What you run it on</span></div>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Runtime</dt>
+            <dd><strong>.NET 10</strong>. The engine is native C++ underneath, loaded once at startup.
+                You never touch it unless you want to.</dd>
+            <dt>Platforms</dt>
+            <dd><strong>x64 Windows and Linux</strong>, same code and same results. On Linux the
+                network layer uses io_uring, so the kernel must allow it (some hardened images switch
+                it off). An ARM build for the Raspberry Pi is being finished.</dd>
+            <dt>Hardware</dt>
+            <dd>Whatever you have. Every benchmark on this site is one box: a desktop Ryzen, or a
+                <a href="https://pi.drylane.io">$35&nbsp;Pi</a>. Put the data on an NVMe drive, or in RAM
+                if it doesn't need to survive a reboot.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Your first database<span class="lang">C#</span></span></div>
+        <p class="sub">Load the engine, describe a shard, open a directory. That is the whole setup.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code">using Dry.Facts;
+
+Facts.LoadNative();   <span class="c">// once per process</span>
+
+<span class="c">// One shard: series ids 0..9999, one F64 column, small payloads inline.</span>
+var spec = ShardSpec.WithColumns(tagMax: 9_999, hasRef: true, ColumnType.F64);
+spec.MaxTotalBytes = 64UL &lt;&lt; 30;   <span class="c">// keep 64 GiB, drop the oldest beyond that</span>
+
+using var db = new FactsDb();
+if (!db.Open("/mnt/data/facts", new[] { spec }))
+    throw new IOException("open failed");
+
+<span class="c">// Write: one appender per producer thread.</span>
+var app = db.AppenderFor(0);
+Span&lt;ulong&gt; col = stackalloc ulong[1];
+col[0] = BitConverter.DoubleToUInt64Bits(21.5);
+app.Append(42, 0, col, 0, default);   <span class="c">// series 42, value 21.5</span>
+
+db.Flush();   <span class="c">// durable from here on; call it on a timer</span>
+
+<span class="c">// Read: min, max and mean over everything stored.</span>
+ColStats st = db.ReaderFor(0).AggValue(0, 0, ulong.MaxValue);</pre></div>
+        <p class="sub">More in <a href="code.html">Code &amp; usage</a>: batch ingest, scans, messaging
+            and serialization.</p>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>The settings that matter</span></div>
+        <p class="sub">Each one with its default and when you'd change it.</p>
+
+        <p class="grp">Facts, per shard</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Shards</dt>
+            <dd>One <code>ShardSpec</code> per independent stream. Each shard has its own writer, so
+                <strong>more shards means more parallel ingest</strong>. Timestamps only need to rise
+                within a shard.</dd>
+            <dt>TagMin, TagMax</dt>
+            <dd>The range of series ids a shard holds, up to 16.7 million. Memory is sized to the
+                range, so a shard holding ids 5000..5999 pays for a thousand, not five thousand.</dd>
+            <dt>Columns</dt>
+            <dd>Up to 16 typed columns per shard (U8 to I64, F32, F64). Pick the narrowest type that
+                fits: storage and scan speed follow the width.</dd>
+            <dt>HasRef</dt>
+            <dd>Adds a payload to every record. Up to 8 bytes is stored inline; anything bigger goes
+                to a blob file. Leave it off for pure numbers.</dd>
+            <dt>MaxTotalBytes</dt>
+            <dd>Retention cap per shard. <strong>Default 0, keep everything.</strong> Set it and the
+                oldest segments are dropped as new ones arrive. Can be changed while running with
+                <code>SetMaxTotalBytes</code>.</dd>
+            <dt>HistMin, HistMax</dt>
+            <dd>Off by default. Give an F64 shard its expected value range and every sealed segment
+                carries a small histogram, so histogram queries over long windows skip the raw
+                data.</dd>
+        </dl>
+
+        <p class="grp">Facts, the whole database</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Flush</dt>
+            <dd>Your crash-safety dial. Anything appended before a <code>Flush()</code> survives a power
+                cut. It costs about <strong>1&nbsp;ms per shard</strong>, almost nothing when idle. Call
+                it every 1 to 60 seconds; the interval is the most you can lose.</dd>
+            <dt>Compression</dt>
+            <dd>Off by default. <code>UseBuiltinLz4()</code> compresses blob payloads on write and
+                decompresses on read; your code still sees plain bytes. Worth it for text and JSON,
+                not for numbers, which are already tight at about 30 bytes a point.</dd>
+            <dt>Prefault on open</dt>
+            <dd>Off by default. <code>Open(..., prefaultSealed: true)</code> pages existing data in at
+                startup, so the first queries after a restart are as fast as the rest. Costs startup
+                time on a big store.</dd>
+        </dl>
+
+        <p class="grp">Nio, the network</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Nio partitions</dt>
+            <dd><code>Nio.Init(partitionCount, cqSize)</code> once per process. A partition is one I/O
+                loop, and each server or client owns one. Size it to the loops you run, plus
+                headroom.</dd>
+            <dt>IdleSleepMs</dt>
+            <dd>What a loop does when there is no traffic. <strong>0 spins</strong>: the lowest
+                latency, at the price of one busy core per loop, idle or not. <strong>1 backs
+                off</strong> after 5&nbsp;ms of silence: at most a millisecond of wake-up delay, and
+                the core is free. Nio defaults to spin, the cluster to back off.</dd>
+            <dt>Timeouts</dt>
+            <dd>A silent connection is marked stalled after 1&nbsp;s and closed after 3&nbsp;s more,
+                and a connect gives up after 5&nbsp;s. Raise them for links that are quiet by design.
+                All three are arguments to <code>Nio.Init</code>.</dd>
+        </dl>
+
+        <p class="grp">Relay, pub/sub</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Relay delivery</dt>
+            <dd><code>new RelayBus(db, catalog, deliveryThreads)</code>. One delivery thread by default.
+                Add more when many subscribers have slow handlers.</dd>
+            <dt>Subscribe modes</dt>
+            <dd><strong>Live</strong> from now, <strong>FromOffset</strong> or <strong>Replay</strong>
+                to read history first and then go live, and <strong>FollowLog</strong> for a replica
+                that keeps reading its own log, through a failover too.</dd>
+            <dt>Ring size</dt>
+            <dd>Each subscriber gets a 64&nbsp;KiB ring by default. A slow subscriber never blocks
+                anyone: on a durable subject it reads the log to catch up and loses nothing, on an
+                ephemeral one the oldest messages are dropped.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Going clustered<span class="lang">C#</span></span></div>
+        <p class="lede">Two nodes, one leader. The follower copies sealed segments as they close and
+            takes over if the leader goes quiet. It asks first: if the leader is still alive and
+            answering, the takeover is <strong>vetoed</strong>, so a network blip can't give you two
+            leaders.</p>
+        <div class="codebox" data-ink="box" data-reveal><pre class="code">var cfg = new ClusterConfig
+{
+    SelfAddress = "10.0.0.1", SelfPort = 7000, ControlPartition = 0,
+    PeerAddress = "10.0.0.2", PeerPort = 7000, PeerPartition = 1,
+    Rank        = 0,                       <span class="c">// 0 = preferred leader</span>
+    DataPort    = 7001, DataServerPartition = 2,
+    PeerDataPort = 7001, ReconcilePartition = 3,
+};
+using var node = new ClusterNode(cfg, db);
+node.OnPromoted = () =&gt; Console.WriteLine("now leading");
+node.Start();
+<span class="c">// Shutdown order: dispose the node first, then close the db.</span></pre></div>
+        <p class="grp">How the pair behaves</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Heartbeats</dt>
+            <dd>Every <strong>100&nbsp;ms</strong>. Three missed in a row (about 300&nbsp;ms) and the
+                follower starts a takeover.</dd>
+            <dt>Veto window</dt>
+            <dd>The follower waits up to <strong>500&nbsp;ms</strong> for a veto before promoting, and
+                trusts peer news for 1&nbsp;s. Shorter means faster failover, longer means fewer false
+                alarms on a flaky network.</dd>
+            <dt>What you can lose</dt>
+            <dd>Sealed segments are on both nodes. If the leader dies hard, the segment it was still
+                filling is lost. That is the honest worst case, and the
+                <a href="https://relay.drylane.io">live failover demo</a> counts it for you.</dd>
+            <dt>Rejoin</dt>
+            <dd>A node that comes back compares logs with the leader, drops anything the leader never
+                had and catches up. If it was gone so long that the leader has already dropped that
+                history, it skips forward to what the leader still keeps.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Running it in production</span></div>
+        <ul class="plain">
+            <li><strong>Data on fast disk.</strong> NVMe for anything that must last. A RAM disk is
+                fine for demos and caches; our public demos write hundreds of MB a second and would
+                wear out an SSD.</li>
+            <li><strong>CPU quotas need backoff.</strong> Under a systemd or container CPU limit,
+                spinning loops get throttled in bulk, heartbeats included, and a healthy leader looks
+                dead. We hit exactly this on our own relay demo: with backoff on it went from
+                <strong>6 cores to about 0.6</strong>, with no false failovers since.</li>
+            <li><strong>io_uring memory.</strong> On Linux each Nio partition locks a little memory.
+                With many partitions, raise the limit (<code>LimitMEMLOCK=infinity</code> in the
+                systemd unit).</li>
+            <li><strong>Flush on a timer, close on exit.</strong> A clean <code>Close()</code> seals
+                everything; a crash costs at most the last flush interval.</li>
+        </ul>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Plays well with your AI assistant</span></div>
+        <p class="lede">The Dry Stack was built by one engineer directing AI, and it shows in the
+            shape of the API. <strong>Everything is code</strong>: no YAML, no hidden environment,
+            no magic. A shard is a <code>ShardSpec</code>, a cluster is a <code>ClusterConfig</code>,
+            and every default and every rule ("dispose the node before closing the db") sits right
+            next to the call it applies to. That is exactly what a coding assistant needs to get
+            it right the first time.</p>
+        <p class="sub">There is a plain-text summary of the API and settings for AI tools at
+            <a href="llms.txt">llms.txt</a>. Paste it into your favourite model and ask it to design
+            your setup.</p>
+
+        <div class="contact" data-ink="box2" data-reveal>
+            <span class="contact-h">Want the bits?</span>
+            <p>The Dry Stack isn't public yet. Tell us what you'd run on it and we'll help you set it
+                up on your hardware.</p>
+            <a class="contact-mail" href="mailto:info@drylane.io">info@drylane.io</a>
+        </div>
+
+        <div class="foot">Part of <a href="stack.html">the Dry Stack</a>, built by
+            <a href="about.html">Drylane</a>.</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+# The Dry Stack
+
+> An embedded data and messaging stack for .NET 10 by Drylane: a time-series store (Facts), zero-copy networking (Nio), generated serializers (Zao) and durable pub/sub (Relay), all native C++ with thin C# wrappers. x64 Windows and Linux. Not public yet: contact info@drylane.io.
+
+Everything is configured in code. There are no config files and no environment variables the engine reads. Defaults below are taken from the source.
+
+## Pages
+
+- [Setup and config](https://drylane.io/setup.html): requirements, first database, every setting that matters
+- [Code and usage](https://drylane.io/code.html): C# samples for Facts, Nio, Zao, Relay and the C++ core
+- [The Dry Stack](https://drylane.io/stack.html): overview and live demos
+- [Facts](https://drylane.io/facts.html), [Nio](https://drylane.io/nio.html), [Zao](https://drylane.io/zao.html), [Relay](https://drylane.io/relay.html): product pages with measured benchmarks
+- [Technical overview PDF](https://drylane.io/dry-stack.pdf)
+
+## Facts (namespace Dry.Facts)
+
+- `Facts.LoadNative()` once per process.
+- `new FactsDb()`, then `db.Open(rootDir, ShardSpec[] specs, prefaultSealed: false)`. Returns false on failure. One FactsDb per directory. Number of shards = specs.Length.
+- `ShardSpec` fields:
+  - `TagMin`, `TagMax`: inclusive series-id range for the shard, 24-bit (max 16,777,215). Memory is sized to the range width.
+  - `Columns`: up to 16 `ColumnType` values (U8, I8, U16, I16, U32, I32, U64, I64, F32, F64). Values are passed as ulong bit patterns (F64 via BitConverter.DoubleToUInt64Bits).
+  - `HasRef`: adds a payload per record; <= 8 bytes inline, larger goes to a blob file.
+  - `MaxTotalBytes`: retention cap per shard, 0 (default) = unbounded; oldest segments evicted. Runtime: `db.SetMaxTotalBytes(shard, bytes)`.
+  - `HistMin`, `HistMax`: per-segment F64 histogram sketch, on only if HistMax > HistMin; speeds long-window Histogram queries.
+  - Helpers: `ShardSpec.Minimal(tagMax, hasRef)`, `ShardSpec.WithColumns(tagMax, hasRef, params ColumnType[])`.
+- Writing: `db.AppenderFor(shard)` (or `db.Appender()` round-robin), one per producer thread. `Append(tagId, mode, cols, wiretype, payload)`, `AppendAt(timestampNs, ...)`, `AppendBatch(...)`. Timestamps must be non-decreasing per shard. Batch path: `db.CreateBatchBuffer(shard, capacity)`.
+- Durability: `db.Flush()` makes everything appended before it survive power loss, about 1 ms per shard. Call on a timer; the interval is the max data-loss window. `db.Close()` on exit.
+- Compression: `db.UseBuiltinLz4()` compresses blob payloads (off by default); reads stay transparent.
+- Reading: `db.ReaderFor(shard)`: `ReadRangeFromSeqno/FromTimestamp`, `TagReadRangeFromSeqno/FromTimestamp` (optional `ColPredicate`), `TagQuerySamples`, `ScanValue`, `ScanValueF64`, `AggValue` (returns ColStats: Count, Min, Max, Sum, Mean), `Histogram`.
+
+## Nio (namespace Dry.Nio)
+
+- `Nio.Init(partitionCount, cqSize, stallSeconds = 1.0, closeSeconds = 3.0, connectTimeoutSeconds = 5.0)` once per process. A partition is one I/O loop; every Server and Client owns one partition id, and two live objects must not share one.
+- `new Server(partitionId)`, `Listen(address, port)`, `OnRequest`, `Start()`. `new Client(partitionId)`, `Connect(address, port, timeoutMs = 5000)`, `Query(...)`, `BeginBatch()`.
+- `IdleSleepMs` on Server and Client: 0 (default) = busy-spin, lowest latency, one core per loop. 1 = sleep 1 ms after 5 ms with no I/O.
+- Linux uses io_uring: needs `kernel.io_uring_disabled = 0`; with many partitions raise the memlock limit (systemd `LimitMEMLOCK=infinity`).
+
+## Relay (namespace Dry.Relay, pub/sub on Facts)
+
+- Open the FactsDb with a data shard plus `RelayCatalog.CatalogShardSpec()`. `new RelayCatalog(db, catalogShardId, dataShardIds)`; subject ids via `catalog.GetTagIds(names, ids)`.
+- `new RelayBus(db, catalog, deliveryThreads = 1)`. `PublishDurable(subjectId, cols, wiretype, payload)` returns the seqno; `PublishEphemeral(subjectId, wiretype, payload)` is not stored.
+- `Subscribe(subject, handler, mode = Live, fromOffset = 0, ringBytes = 64 KiB)`. Modes: Live, FromOffset, Replay, FollowLog (replica that tails its own db, survives failover). A slow durable subscriber falls back to reading the log (no loss); ephemeral drops oldest.
+
+## Cluster (namespace Dry.Cluster, two-node failover)
+
+- `new ClusterNode(ClusterConfig, db)`, `Start()`, `OnPromoted`, `OnRejoined`. Always dispose the ClusterNode before closing the FactsDb.
+- `ClusterConfig`: `SelfAddress`, `SelfPort`, `ControlPartition`, `PeerAddress`, `PeerPort`, `PeerPartition`, `Rank` (0 = preferred leader), `DataPort`, `DataServerPartition`, `PeerDataPort`, `ReconcilePartition`, `FollowPartitionBase`, `FollowPollMs = 200`.
+- Timing defaults: `HeartbeatIntervalMs = 100`, `MissedHeartbeatsToFail = 3`, `AskTimeoutMs = 500` (wait for a veto before promoting), `TFreshMs = 1000`, `IdleSleepMs = 1`.
+- Semantics: the follower copies sealed segments; a takeover is vetoed while the leader still answers (no split brain). A hard leader crash loses the unsealed active segment. A rejoining node truncates divergent data, catches up, and skips forward past history the leader already evicted.
+- Under a CPU quota keep IdleSleepMs >= 1: busy-spinning loops get throttled together, heartbeats starve and a healthy leader looks dead.
