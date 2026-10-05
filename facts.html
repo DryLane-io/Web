@@ -232,7 +232,7 @@
                 <div class="gap-mult mute"><span class="x">3.8&times;</span><span class="lbl">more</span></div>
             </div>
         </div>
-        <p class="fine">Medians from our open harness (<strong>Facts.Benchmarks</strong>) on real TSBS
+        <p class="fine">Medians from our benchmark harness (<strong>Facts.Benchmarks</strong>) on real TSBS
             <em>cpu-only</em> data. DuckDB got every advantage: all cores, its fastest bulk load
             (Parquet <code>COPY</code>) and a host index. Facts wins every speed test on one core and
             loses on storage density, because DuckDB compresses and Facts keeps data raw and
@@ -301,7 +301,7 @@
         <p class="lede">Ingest runs about an <strong>order of magnitude ahead of QuestDB</strong> and two
             ahead of InfluxDB. The most common dashboard query, the latest reading for each sensor,
             comes back in <strong>tens of microseconds</strong>.</p>
-        <p class="fine">Medians and p99 from our open harness (<strong>Facts.Benchmarks</strong>,
+        <p class="fine">Medians and p99 from our benchmark harness (<strong>Facts.Benchmarks</strong>,
             <code>--tier b</code>) on real TSBS <em>cpu-only</em> data, each engine at its best
             configuration. <strong>Why the gap:</strong> Facts speaks a compact binary wire format, while
             QuestDB and InfluxDB use text line protocols where every number is spelled out in ASCII and
