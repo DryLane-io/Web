@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Setup and config, the Dry Stack</title>
+    <meta name="description" content="One process, a handful of settings, nothing else to run. Requirements, a first database and every setting that matters.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Drylane">
+    <meta property="og:title" content="Setup and config, the Dry Stack">
+    <meta property="og:description" content="One process, a handful of settings, nothing else to run. Requirements, a first database and every setting that matters.">
+    <meta property="og:url" content="https://drylane.io/setup.html">
+    <meta property="og:image" content="https://drylane.io/img/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="ink.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,7 +67,7 @@ using var db = new FactsDb();
 if (!db.Open("/mnt/data/facts", new[] { spec }))
     throw new IOException("open failed");
 
-<span class="c">// Write: one appender per producer thread.</span>
+<span class="c">// Write: one thread per shard.</span>
 var app = db.AppenderFor(0);
 Span&lt;ulong&gt; col = stackalloc ulong[1];
 col[0] = BitConverter.DoubleToUInt64Bits(21.5);
@@ -192,9 +203,71 @@ node.Start();
             <li><strong>io_uring memory.</strong> On Linux each Nio partition locks a little memory.
                 With many partitions, raise the limit (<code>LimitMEMLOCK=infinity</code> in the
                 systemd unit).</li>
-            <li><strong>Flush on a timer, close on exit.</strong> A clean <code>Close()</code> seals
+            <li><strong>Flush on a timer, close on exit.</strong> A clean <code>Close()</code> keeps
                 everything; a crash costs at most the last flush interval.</li>
         </ul>
+
+        <p class="grp">Day two</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>Integrity</dt>
+            <dd>Every file carries checksums, verified on open. A write torn by a crash is cut back to
+                the last good chunk, and the counts of what was repaired are reported, not
+                hidden.</dd>
+            <dt>Monitoring</dt>
+            <dd><code>GetInfo</code>, <code>GetShardInfo</code> and <code>GetTagInfo</code> give records,
+                segments, disk use, first and last time per series, and those repair counts. Wire them
+                into whatever you watch with; there is no Prometheus endpoint yet.</dd>
+            <dt>Backup</dt>
+            <dd>No backup tool yet. Today the backup is a second node: the follower holds every sealed
+                segment.</dd>
+            <dt>Upgrades</dt>
+            <dd>The on-disk format is versioned and checked on open. Until 1.0 a new format version
+                won't read the old one, so an upgrade across a format change means
+                re-ingesting.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Know the limits</span></div>
+        <p class="lede">It's fast partly because it says no to things. Better you read them here than
+            find them in week three.</p>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>No SQL</dt>
+            <dd>Queries are API calls: ranges, series reads, scans, aggregates and histograms. No query
+                language and no joins.</dd>
+            <dt>Append only</dt>
+            <dd>No updates or deletes of single records. Data leaves through retention.</dd>
+            <dt>Time moves forward</dt>
+            <dd>Timestamps must rise within a shard. Late or out-of-order data keeps its own time in a
+                column.</dd>
+            <dt>One writer per shard</dt>
+            <dd>Parallel ingest comes from more shards, not more threads on one shard.</dd>
+            <dt>Fixed columns</dt>
+            <dd>A shard's columns are set when it's created. A new column means a new shard or a new
+                database; there is no migration yet.</dd>
+            <dt>Two-node clusters</dt>
+            <dd>One leader and one follower. No three-node quorum and no spreading one database over
+                many machines.</dd>
+            <dt>.NET first</dt>
+            <dd>C# is the only wrapper today. Everything sits on a plain C interface, so other
+                languages can follow, but they aren't done.</dd>
+        </dl>
+
+        <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Security</span></div>
+        <dl class="spec" data-ink="box" data-reveal>
+            <dt>On the wire</dt>
+            <dd>Nio has an optional encrypted channel: P-256 key exchange with forward secrecy and
+                AES-GCM, against a server key the client pins. It is our own handshake on standard
+                primitives, <strong>not TLS, and not externally audited</strong>.</dd>
+            <dt>Who may connect</dt>
+            <dd>The channel authenticates the server, not the client. Anyone who can reach the port can
+                connect, so control access at the network.</dd>
+            <dt>Cluster traffic</dt>
+            <dd>Heartbeats and replication are not encrypted. Keep the pair on a private network.</dd>
+            <dt>At rest</dt>
+            <dd>Data files are not encrypted. Use disk encryption if the data needs it.</dd>
+            <dt>Our own demos</dt>
+            <dd>Cloudflare in front handles TLS, and the apps behind it only listen on
+                loopback.</dd>
+        </dl>
 
         <div class="section-wrap"><span class="section-label" data-ink="u" data-reveal>Plays well with your AI assistant</span></div>
         <p class="lede">The Dry Stack was built by one engineer directing AI, and it shows in the

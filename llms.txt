@@ -23,7 +23,7 @@ Everything is configured in code. There are no config files and no environment v
   - `MaxTotalBytes`: retention cap per shard, 0 (default) = unbounded; oldest segments evicted. Runtime: `db.SetMaxTotalBytes(shard, bytes)`.
   - `HistMin`, `HistMax`: per-segment F64 histogram sketch, on only if HistMax > HistMin; speeds long-window Histogram queries.
   - Helpers: `ShardSpec.Minimal(tagMax, hasRef)`, `ShardSpec.WithColumns(tagMax, hasRef, params ColumnType[])`.
-- Writing: `db.AppenderFor(shard)` (or `db.Appender()` round-robin), one per producer thread. `Append(tagId, mode, cols, wiretype, payload)`, `AppendAt(timestampNs, ...)`, `AppendBatch(...)`. Timestamps must be non-decreasing per shard. Batch path: `db.CreateBatchBuffer(shard, capacity)`.
+- Writing: `db.AppenderFor(shard)` (or `db.Appender()` round-robin across shards). One writing thread per shard; parallel ingest comes from more shards. `Append(tagId, mode, cols, wiretype, payload)`, `AppendAt(timestampNs, ...)`, `AppendBatch(...)`. Timestamps must be non-decreasing per shard. Batch path: `db.CreateBatchBuffer(shard, capacity)`.
 - Durability: `db.Flush()` makes everything appended before it survive power loss, about 1 ms per shard. Call on a timer; the interval is the max data-loss window. `db.Close()` on exit.
 - Compression: `db.UseBuiltinLz4()` compresses blob payloads (off by default); reads stay transparent.
 - Reading: `db.ReaderFor(shard)`: `ReadRangeFromSeqno/FromTimestamp`, `TagReadRangeFromSeqno/FromTimestamp` (optional `ColPredicate`), `TagQuerySamples`, `ScanValue`, `ScanValueF64`, `AggValue` (returns ColStats: Count, Min, Max, Sum, Mean), `Histogram`.
@@ -48,3 +48,14 @@ Everything is configured in code. There are no config files and no environment v
 - Timing defaults: `HeartbeatIntervalMs = 100`, `MissedHeartbeatsToFail = 3`, `AskTimeoutMs = 500` (wait for a veto before promoting), `TFreshMs = 1000`, `IdleSleepMs = 1`.
 - Semantics: the follower copies sealed segments; a takeover is vetoed while the leader still answers (no split brain). A hard leader crash loses the unsealed active segment. A rejoining node truncates divergent data, catches up, and skips forward past history the leader already evicted.
 - Under a CPU quota keep IdleSleepMs >= 1: busy-spinning loops get throttled together, heartbeats starve and a healthy leader looks dead.
+
+## Limits (as of 2026-10)
+
+- No SQL, no joins: queries are API calls (ranges, tag reads, scans, aggregates, histograms).
+- Append only: no per-record update or delete; data leaves through retention.
+- Timestamps non-decreasing per shard; keep late/out-of-order source time in a column.
+- One writing thread per shard; a shard's columns are fixed at creation, no migration.
+- Two-node clusters only (leader + follower).
+- C# is the only wrapper; the engine has a C interface.
+- On-disk format is versioned and checked on open; until 1.0 a format change means re-ingest. No backup tool; a follower node is the live copy. No Prometheus endpoint; use GetInfo/GetShardInfo/GetTagInfo.
+- Security: optional Nio encrypted channel (P-256 ECDH, forward secrecy, AES-GCM, pinned server key; custom handshake, not TLS, not externally audited, no client auth). Cluster traffic is unencrypted; data files are not encrypted at rest.
