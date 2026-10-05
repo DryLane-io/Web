@@ -1,6 +1,6 @@
 # The Dry Stack
 
-> An embedded data and messaging stack for .NET 10 by Drylane: a time-series store (Facts), zero-copy networking (Nio), generated serializers (Zao) and durable pub/sub (Relay), all native C++ with thin C# wrappers. x64 Windows and Linux. Not public yet: contact info@drylane.io.
+> An embedded data and messaging stack for .NET 10 by Drylane: a time-series store (Facts), zero-copy networking (Nio), generated serializers (Zao) and durable pub/sub (Relay), all native C++ with thin C# wrappers. x64 Windows and Linux. Early access for a few design partners (the stack plus direct engineering help; production licences per deployment): contact info@drylane.io.
 
 Everything is configured in code. There are no config files and no environment variables the engine reads. Defaults below are taken from the source.
 
